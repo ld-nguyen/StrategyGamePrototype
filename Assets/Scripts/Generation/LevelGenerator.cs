@@ -2,32 +2,38 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+//TODO: Move some parts to utility class
 [System.Serializable]
-public class ElevationBiome : IComparable
+public class ElevationTier : IComparable
 {
     public float perlinElevationThreshold;
-    public SubBiome[] subBiomes;
+    public MoistureTier[] subBiomes;
 
     public int CompareTo(object obj)
     {
-        ElevationBiome i = (ElevationBiome)obj;
+        ElevationTier i = (ElevationTier)obj;
         return perlinElevationThreshold.CompareTo(i.perlinElevationThreshold);
     }
 }
 
 [System.Serializable]
-public class SubBiome : IComparable
+public class MoistureTier : IComparable
 {
-    public TerrainType type;
-    public GameObject prefab;
     public float perlinMoistureThreshold;
+    public TerrainType biome;
 
     public int CompareTo(object obj)
     {
-        SubBiome i = (SubBiome)obj;
+        MoistureTier i = (MoistureTier)obj;
         return perlinMoistureThreshold.CompareTo(i.perlinMoistureThreshold);
     }
+}
+
+[System.Serializable]
+public struct Biome
+{
+    public TerrainType type;
+    public GameObject prefab;
 }
 
 public enum TerrainType
@@ -55,26 +61,38 @@ public struct PerlinMapParameters
     public float persistence;
 }
 
+[System.Serializable]
+public struct MapDimensions
+{
+    public int width;
+    public int height;
+}
+
 public class LevelGenerator : MonoBehaviour
 {
     public enum LevelGenerationType { Debug, Procedual }
     public LevelGenerationType levelGeneration;
 
     [Header("General Settings")]
-    public int mapWidth;
-    public int mapHeight;
+    public MapDimensions mapDimensions;
     public GameObject parentGO;
     [Header("Tiles")]
-    public ElevationBiome[] perlinTilePool;
+    public Biome[] biomePrefabs;
     public int tileSize;
     [Header("Perlin Parameters")]
     public bool showDebugText;
+    public ElevationTier[] perlinBiomeSettings;
     public Renderer debugElevationPlane;
     public Renderer debugMoisturePlane;
     public PerlinMapParameters elevationSettings;
     public PerlinMapParameters moistureSettings;
+    [Header("Seed Growth Parameters")]
+    public SeedGrowthParameters forestParam;
+    public PoissonDiscParameters forestPoisson;
 
     //
+    private Dictionary<TerrainType, GameObject> prefabDictionary;
+
     private float[] elevationMap;
     private float[] moistureMap;
 
@@ -83,10 +101,16 @@ public class LevelGenerator : MonoBehaviour
     void Awake()
     {
         //Presort Biome Arrays
-        Array.Sort(perlinTilePool);
-        foreach(ElevationBiome e in perlinTilePool)
+        Array.Sort(perlinBiomeSettings);
+        foreach(ElevationTier e in perlinBiomeSettings)
         {
             Array.Sort(e.subBiomes);
+        }
+        //Populate Dictionary
+        prefabDictionary = new Dictionary<TerrainType, GameObject>();
+        foreach(Biome biome in biomePrefabs)
+        {
+            prefabDictionary.Add(biome.type, biome.prefab);
         }
     }
 
@@ -104,56 +128,44 @@ public class LevelGenerator : MonoBehaviour
 
     private void GenerateProcedualLevel()
     {
-        elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapWidth, mapHeight, elevationSettings);
-        moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapWidth, mapHeight, moistureSettings);
+        elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings);
+        moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings);
+
         terrainMap = CombinePerlinMaps();
 
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        //terrainMap = PoissonDisc.DistributeTerrainTile(terrainMap, forestPoisson, mapDimensions);
         if (showDebugText) ShowPerlinOnTexture();
         InitializePerlinMap();
     }
 
     private TerrainType[] CombinePerlinMaps()
     {
-        TerrainType[] perlinTerrain = new TerrainType[mapWidth * mapHeight];
+        TerrainType[] perlinTerrain = new TerrainType[mapDimensions.width * mapDimensions.height];
         for(int i = 0; i < perlinTerrain.Length; i++)
         {
-            perlinTerrain[i] = GetBiome(elevationMap[i], moistureMap[i]).type;
+            perlinTerrain[i] = GetBiome(elevationMap[i], moistureMap[i]);
         }
         return perlinTerrain;
     }
 
     //TODO: Fix shit naming
-    private SubBiome GetBiome(float elevationValue, float moistureValue)
+    private TerrainType GetBiome(float elevationValue, float moistureValue)
     {
-        for (int i = 0; i < perlinTilePool.Length; i++)
+        for (int i = 0; i < perlinBiomeSettings.Length; i++)
         {
-            if (elevationValue <= perlinTilePool[i].perlinElevationThreshold)
+            if (elevationValue <= perlinBiomeSettings[i].perlinElevationThreshold)
             {
-                for(int j = 0; j < perlinTilePool[i].subBiomes.Length; j++)
+                for(int j = 0; j < perlinBiomeSettings[i].subBiomes.Length; j++)
                 {
-                    if (moistureValue <= perlinTilePool[i].subBiomes[j].perlinMoistureThreshold)
+                    if (moistureValue <= perlinBiomeSettings[i].subBiomes[j].perlinMoistureThreshold)
                     {
-                        return perlinTilePool[i].subBiomes[j];
+                        return perlinBiomeSettings[i].subBiomes[j].biome;
                     }
                 }
             }
         }
-        return null;
-    }
-    
-    private SubBiome GetBiome(TerrainType desiredType)
-    {
-        foreach(ElevationBiome elevationTier in perlinTilePool)
-        {
-            foreach(SubBiome moistureBiome in elevationTier.subBiomes)
-            {
-                if(moistureBiome.type == desiredType)
-                {
-                    return moistureBiome;
-                }
-            }
-        }
-        return null;
+        return TerrainType.None;
     }
 
     public void InitializePerlinMap()
@@ -161,11 +173,11 @@ public class LevelGenerator : MonoBehaviour
         Vector3 spawnPos;
         for (int i = 0; i < terrainMap.Length; i++)
         {
-            int x = (i % mapWidth);
-            int y = Mathf.FloorToInt(i / mapWidth);
+            int x = (i % mapDimensions.width);
+            int y = Mathf.FloorToInt(i / mapDimensions.width);
             spawnPos = new Vector3(x, y, 0);
 
-            GameObject tile = Instantiate(GetBiome(terrainMap[i]).prefab, parentGO.transform);
+            GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
             tile.transform.localPosition = spawnPos;
         }
     }
@@ -178,15 +190,16 @@ public class LevelGenerator : MonoBehaviour
 
         GenerateProcedualLevel();
     }
-    private void ShowPerlinOnTexture()
-    {
-        int width = mapWidth;
-        int height = mapHeight;
 
-        Texture2D elevation = new Texture2D(mapWidth, mapHeight);
-        Texture2D moisture = new Texture2D(mapWidth, mapHeight);
-        Color[] colorMapElevation = new Color[mapWidth * mapHeight];
-        Color[] colorMapMoisture = new Color[mapWidth * mapHeight];
+    private void ShowPerlinOnTexture() //Debug Method
+    {
+        int width = mapDimensions.width;
+        int height = mapDimensions.height;
+
+        Texture2D elevation = new Texture2D(mapDimensions.width, mapDimensions.height);
+        Texture2D moisture = new Texture2D(mapDimensions.width, mapDimensions.height);
+        Color[] colorMapElevation = new Color[mapDimensions.width * mapDimensions.height];
+        Color[] colorMapMoisture = new Color[mapDimensions.width * mapDimensions.height];
 
         for (int x = 0; x < width; x++)
         {

@@ -4,13 +4,8 @@ using UnityEngine;
 
 public class Utility : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    public static float Distance(Point x1, Point x2)
+    {
+       return Mathf.Sqrt(((x1.x - x2.x) * (x1.x - x2.x) + (x1.y - x2.y) * (x1.y - x2.y)));
+    }
 }
