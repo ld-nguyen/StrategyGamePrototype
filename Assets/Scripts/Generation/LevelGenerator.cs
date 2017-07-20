@@ -46,6 +46,7 @@ public enum TerrainType
     Swamp,
     Beach,
     Desert,
+    Road,
     None // Used for debug purposes
 }
 
@@ -73,6 +74,7 @@ public class LevelGenerator : MonoBehaviour
     public enum LevelGenerationType { Debug, Procedual }
     public LevelGenerationType levelGeneration;
 
+    //INSPECTOR SETTINGS
     [Header("General Settings")]
     public MapDimensions mapDimensions;
     public GameObject parentGO;
@@ -88,11 +90,12 @@ public class LevelGenerator : MonoBehaviour
     public PerlinMapParameters moistureSettings;
     [Header("Seed Growth Parameters")]
     public SeedGrowthParameters forestParam;
-    public PoissonDiscParameters forestPoisson;
-
+    [Header("Road Generation Parameters")]
+    public RoadGeneratorParameters roadParam;
     //
-    private Dictionary<TerrainType, GameObject> prefabDictionary;
+    public static LevelGenerator Instance { get; private set; }
 
+    private Dictionary<TerrainType, GameObject> prefabDictionary;
     private float[] elevationMap;
     private float[] moistureMap;
 
@@ -100,6 +103,9 @@ public class LevelGenerator : MonoBehaviour
 
     void Awake()
     {
+        //Singleton Setup
+        Instance = this;
+
         //Presort Biome Arrays
         Array.Sort(perlinBiomeSettings);
         foreach(ElevationTier e in perlinBiomeSettings)
@@ -135,6 +141,8 @@ public class LevelGenerator : MonoBehaviour
 
         terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
         //terrainMap = PoissonDisc.DistributeTerrainTile(terrainMap, forestPoisson, mapDimensions);
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
+
         if (showDebugText) ShowPerlinOnTexture();
         InitializePerlinMap();
     }
@@ -218,5 +226,6 @@ public class LevelGenerator : MonoBehaviour
         debugMoisturePlane.material.mainTexture = moisture;
         debugElevationPlane.material.mainTexture = elevation;
     }
+
 
 }

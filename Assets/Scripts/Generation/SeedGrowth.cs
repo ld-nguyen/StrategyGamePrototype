@@ -82,8 +82,8 @@ public class SeedGrowth : MonoBehaviour {
 
     private static float CalculatePlacementChance(Point origin, Point goal, int kernelSize)
     {
-        float distance = Utility.Distance(origin, goal);
-        float maxPossibleDistance = Utility.Distance(origin, new Point(origin.x + kernelSize, origin.y + kernelSize));
+        float distance = Utility.EuclidianDistance(origin, goal);
+        float maxPossibleDistance = Utility.EuclidianDistance(origin, new Point(origin.x + kernelSize, origin.y + kernelSize));
         float lerp = 1 - Mathf.InverseLerp(0, maxPossibleDistance, distance);
         return Mathf.Clamp(lerp + parameters.placementChanceBaseChance,0,1);
     }

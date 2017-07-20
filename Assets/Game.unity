@@ -281,6 +281,8 @@ MonoBehaviour:
     prefab: {fileID: 1637903646547178, guid: 926b77e3660458c49ab69a60da0e3826, type: 2}
   - type: 0
     prefab: {fileID: 1637903646547178, guid: da16331fefd686047b40982d5ca7c713, type: 2}
+  - type: 8
+    prefab: {fileID: 1637903646547178, guid: f1ae11706ce882f4a82f2ec3966a7e84, type: 2}
   tileSize: 5
   showDebugText: 1
   perlinBiomeSettings:
@@ -331,12 +333,9 @@ MonoBehaviour:
       max: 8
     desiredTerrain: 4
     allowedBiomes: 010000000200000005000000
-  forestPoisson:
-    amountOfSeeds: 1
-    radius: 2
-    sampleSize: 30
-    terrainToDistributeOn: 1
-    desiredNewTerrain: 4
+  roadParam:
+    numberOfRoads: 2
+    minimumDistance: 16
 --- !u!4 &270902884
 Transform:
   m_ObjectHideFlags: 0
@@ -444,7 +443,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.8564539, y: 0.97236407}
   m_AnchorMax: {x: 0.8564539, y: 0.97236407}
-  m_AnchoredPosition: {x: 0.8240051, y: -0.1349945}
+  m_AnchoredPosition: {x: 0.8240051, y: -0.13500977}
   m_SizeDelta: {x: 160, y: 23.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &631402116
