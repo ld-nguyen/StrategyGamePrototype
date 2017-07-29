@@ -15,8 +15,7 @@ using UnityEngine;
  * TODO: Factor in perlin heights in heuristics for Road Generation
  */
 
-
-public class Node : IComparable
+public class Node : System.IComparable
 {
     public Point coords { get; private set; }
     public float g;
@@ -67,20 +66,21 @@ public class Node : IComparable
         g = Utility.ManhattanDistance(start, coords);
         h = Utility.ManhattanDistance(coords, goal);
     }
-    
 }
 
 public class AStarPathSearch
 {
     private static Point startPoint;
     private static Point goalPoint;
+    private static List<TerrainType> allowedTerrains;
 
-    public static List<Point> FindPath(Point start,Point goal)
+    public static List<Point> FindPath(Point start,Point goal, List<TerrainType> traversableTerrains = null)
     {
         //Caching Parameters for the other methods
         startPoint = start;
         goalPoint = goal;
-        
+        allowedTerrains = traversableTerrains;
+
         List<Node> openList = new List<Node>();
         List<Node> closedList = new List<Node>();
 
@@ -102,7 +102,7 @@ public class AStarPathSearch
 
                 foreach(Node neighbour in neighbours)
                 {
-                    if (closedList.Contains(neighbour)) // Add condition for non traversable nodes
+                    if (closedList.Contains(neighbour) || !IsTraversableTerrain(neighbour)) // Add condition for non traversable nodes
                     {
                         continue;
                     }
@@ -122,7 +122,7 @@ public class AStarPathSearch
                     }
                 }
         }
-        return null;
+        return new List<Point>();
     }
 
     private static Node GetNodeFromPoint(Point p)
@@ -189,11 +189,27 @@ public class AStarPathSearch
     {
         List<Point> path = new List<Point>();
         Node currentNode = end;
-        while (currentNode != start)
+        while (currentNode.parent != null)
         {
             path.Add(currentNode.coords);
             currentNode = currentNode.parent;
         }
         return path; 
+    }
+
+    private static bool IsTraversableTerrain(Node n)
+    {
+        if(allowedTerrains.Count <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            if (allowedTerrains.Contains(LevelGenerator.Instance.TerrainAtPoint(n.coords)))
+            {
+                return true;
+            }
+            else return false;
+        }
     }
 }

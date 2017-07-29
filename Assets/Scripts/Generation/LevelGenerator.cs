@@ -140,7 +140,6 @@ public class LevelGenerator : MonoBehaviour
         terrainMap = CombinePerlinMaps();
 
         terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
-        //terrainMap = PoissonDisc.DistributeTerrainTile(terrainMap, forestPoisson, mapDimensions);
         terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugText) ShowPerlinOnTexture();
@@ -187,6 +186,7 @@ public class LevelGenerator : MonoBehaviour
 
             GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
             tile.transform.localPosition = spawnPos;
+            tile.GetComponent<Tile>().SetCoords(x, y);
         }
     }
     public void RegenerateTerrain()
@@ -227,5 +227,9 @@ public class LevelGenerator : MonoBehaviour
         debugElevationPlane.material.mainTexture = elevation;
     }
 
+    public TerrainType TerrainAtPoint(Point p)
+    {
+        return terrainMap[p.y * mapDimensions.width + p.x];
+    }
 
 }

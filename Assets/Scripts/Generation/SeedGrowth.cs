@@ -53,7 +53,7 @@ public class SeedGrowth : MonoBehaviour {
                     for(int yOffset = - kernelSize; yOffset <= kernelSize; yOffset++)
                     {
                         Point neighbour = new Point(seedLocation.x + xOffset, seedLocation.y + yOffset);
-                        if (IsInsideGrid(neighbour) && IsCorrectTile(neighbour))
+                        if (neighbour.IsInsideGrid() && IsCorrectTile(neighbour))
                         {
                             float chanceOffset = CalculatePlacementChance(seedLocation, neighbour, kernelSize); //Lower chance for placing a forest tile the farther you are away
                             if (Random.Range(0f, 1f) < chanceOffset)
@@ -72,7 +72,7 @@ public class SeedGrowth : MonoBehaviour {
                     xRandomOffset = Random.Range(-kernelSize, kernelSize + 1);
                     yRandomOffset = Random.Range(-kernelSize, kernelSize + 1);
                     nextPoint = new Point(seedLocation.x + xRandomOffset, seedLocation.y + yRandomOffset);
-                } while (!IsInsideGrid(nextPoint) && (Mathf.Abs((float) xRandomOffset) == kernelSize || Mathf.Abs((float)yRandomOffset) == kernelSize));
+                } while (!nextPoint.IsInsideGrid() && (Mathf.Abs((float) xRandomOffset) == kernelSize || Mathf.Abs((float)yRandomOffset) == kernelSize));
 
                 seedLocation = nextPoint;
             }
@@ -86,17 +86,6 @@ public class SeedGrowth : MonoBehaviour {
         float maxPossibleDistance = Utility.EuclidianDistance(origin, new Point(origin.x + kernelSize, origin.y + kernelSize));
         float lerp = 1 - Mathf.InverseLerp(0, maxPossibleDistance, distance);
         return Mathf.Clamp(lerp + parameters.placementChanceBaseChance,0,1);
-    }
-
-
-    //TODO: Put into Utiity class
-    private static bool IsInsideGrid(Point p)
-    {
-        if (p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height)
-        {
-            return true;
-        }
-        else return false;
     }
 
     public static bool IsCorrectTile(Point coords)

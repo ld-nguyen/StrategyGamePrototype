@@ -334,8 +334,11 @@ MonoBehaviour:
     desiredTerrain: 4
     allowedBiomes: 010000000200000005000000
   roadParam:
-    numberOfRoads: 2
-    minimumDistance: 16
+    numberOfRoads: 1
+    minimumDistance: 30
+    startAndEndTerrain: 0000000003000000
+    roadTerrains: 0100000000000000040000000600000003000000
+    desiredRoadTerrain: 0
 --- !u!4 &270902884
 Transform:
   m_ObjectHideFlags: 0

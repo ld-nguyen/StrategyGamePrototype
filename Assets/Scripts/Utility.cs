@@ -28,4 +28,72 @@ public class Utility : MonoBehaviour {
         MapDimensions map = LevelGenerator.Instance.mapDimensions;
         return p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height;
     }
+
+    public static bool CheckNeighbours(Point p,int kernelSize,Condition breakCondition)
+    {
+        for(int xOffset = -kernelSize; xOffset <= kernelSize; xOffset++)
+        {
+            for(int yOffset = -kernelSize; yOffset <= kernelSize; yOffset++)
+            {
+                if (breakCondition.Invoke())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public delegate bool Condition();
+
 }
+
+public struct Point
+{
+    public int x;
+    public int y;
+
+    public Point(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
+    }
+
+    public bool Equals(Point p)
+    {
+        return x == p.x && y == p.y;
+    }
+
+    public Point GetNeighbour(int xOffset, int yOffset)
+    {
+        return new Point(x + xOffset, y + yOffset);
+    }
+
+    public static Point GetRandomPoint()
+    {
+        return new Point(Random.Range(0, LevelGenerator.Instance.mapDimensions.width), Random.Range(0, LevelGenerator.Instance.mapDimensions.height));
+    }
+
+    public override string ToString()
+    {
+        return " x: " + x + " y: " + y;
+    }
+
+    public static Point operator +(Point a, Point b)
+    {
+        return new Point(a.x + b.x, a.y + b.y);
+    }
+
+    public bool IsInsideGrid()
+    {
+        MapDimensions map = LevelGenerator.Instance.mapDimensions;
+        if (x >= 0 && x < map.width && y >= 0 && y < map.height)
+        {
+            return true;
+        }
+        else return false;
+    }
+
+    
+}
+

@@ -12,34 +12,6 @@ public struct PoissonDiscParameters
     public TerrainType terrainToDistributeOn;
     public TerrainType desiredNewTerrain;
 }
-
-public struct Point
-{
-    public int x;
-    public int y;
-
-    public Point(int x, int y)
-    {
-        this.x = x;
-        this.y = y;
-    }
-
-    public bool Equals(Point p)
-    {
-        return x == p.x && y == p.y;
-    }
-
-    public Point GetNeighbour(int xOffset, int yOffset)
-    {
-        return new Point(x + xOffset, y + yOffset);
-    }
-
-    public static Point GetRandomPoint()
-    {
-        return new Point(Random.Range(0, LevelGenerator.Instance.mapDimensions.width), Random.Range(0, LevelGenerator.Instance.mapDimensions.height));
-    }
-}
-
 public class PoissonDisc {
 
     private static TerrainType[] grid;
