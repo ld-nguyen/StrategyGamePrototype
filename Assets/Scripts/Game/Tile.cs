@@ -7,7 +7,9 @@ public class Tile : MonoBehaviour
     public int x { get; private set; }
     public int y { get; private set; }
 
-    public TextMesh debugCoords;
+    private TextMesh debugCoords;
+    private SpriteRenderer renderer;
+    private Color originalColor;
 
     public void SetCoords(int x, int y)
     {
@@ -21,5 +23,27 @@ public class Tile : MonoBehaviour
     void Awake()
     {
         debugCoords = GetComponentInChildren<TextMesh>();
+        renderer = GetComponent<SpriteRenderer>();
+        if(renderer) originalColor = renderer.material.color;
+    }
+
+    void OnMouseEnter()
+    {
+        renderer.material.color = GameManager.Instance.tileHigh;
+    }
+
+    void OnMouseDown()
+    {
+        renderer.material.color = Color.blue;
+    }
+
+    void OnMouseUp()
+    {
+        renderer.material.color = GameManager.Instance.tileHigh;
+    }
+
+    void OnMouseExit()
+    {
+        renderer.material.color = originalColor;
     }
 }

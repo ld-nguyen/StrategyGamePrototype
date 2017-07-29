@@ -38,6 +38,7 @@ GameObject:
   - component: {fileID: 4462202802676126}
   - component: {fileID: 212615948100451512}
   - component: {fileID: 114295478793163554}
+  - component: {fileID: 61940621845952706}
   m_Layer: 0
   m_Name: Swamp
   m_TagString: Untagged
@@ -104,6 +105,31 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!61 &61940621845952706
+BoxCollider2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1637903646547178}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 0.32, y: 0.32}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!102 &102481482413864974
 TextMesh:
   serializedVersion: 3
@@ -136,7 +162,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76a1b1de4e3d2d04bb0de619eab9c475, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugCoords: {fileID: 0}
 --- !u!212 &212615948100451512
 SpriteRenderer:
   m_ObjectHideFlags: 1
