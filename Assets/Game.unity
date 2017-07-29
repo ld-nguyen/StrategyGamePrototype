@@ -336,7 +336,7 @@ MonoBehaviour:
   roadParam:
     numberOfRoads: 1
     minimumDistance: 30
-    startAndEndTerrain: 0000000003000000
+    startAndEndTerrain: 00000000
     roadTerrains: 0100000000000000040000000600000003000000
     desiredRoadTerrain: 0
 --- !u!4 &270902884
