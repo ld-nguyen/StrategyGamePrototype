@@ -13,12 +13,13 @@ public struct RoadGeneratorParameters
 }
 
 public class RoadGenerator {
-    public static TerrainType[] grid;
+    private static TerrainType[] grid;
+    private static RoadGeneratorParameters parameters;
 
     public static TerrainType[] GenerateRoads(TerrainType[] originalMap, RoadGeneratorParameters param)
     {
         grid = originalMap;
-        
+        parameters = param;
         for(int road = 0; road < param.numberOfRoads; road++)
         {
             Point start;
@@ -30,12 +31,12 @@ public class RoadGenerator {
                 do
                 {
                     start = Point.GetRandomPoint();
-                } while (!param.startAndEndTerrain.Contains(GetTerrainAtPoint(start)));
+                } while (!CheckPoints(start));
                 //Select End
                 do
                 {
                     end = Point.GetRandomPoint();
-                } while (!param.startAndEndTerrain.Contains(GetTerrainAtPoint(end)));
+                } while (!CheckPoints(end));
             } while (Utility.ManhattanDistance(start, end) < param.minimumDistance);
 
             Debug.Log("Start:" + start.ToString() + " End: " + end.ToString());
@@ -55,6 +56,25 @@ public class RoadGenerator {
             else { Debug.Log("Path not found!"); }
         }
         return grid;
+    }
+
+    public static bool CheckPoints(Point p)
+    {
+        if (!parameters.startAndEndTerrain.Contains(GetTerrainAtPoint(p))) return false;
+        else
+        {
+            return Utility.CheckNeighbours(p, 1, IsDifferentTerrain);
+        }
+    }
+
+    public static bool IsSameTerrain(Point initial,Point p)
+    {
+        return GetTerrainAtPoint(initial) == GetTerrainAtPoint(p);
+    }
+
+    public static bool IsDifferentTerrain(Point initial, Point p)
+    {
+        return GetTerrainAtPoint(initial) != GetTerrainAtPoint(p);
     }
 
     public static TerrainType GetTerrainAtPoint(Point p)

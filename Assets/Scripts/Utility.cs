@@ -29,22 +29,28 @@ public class Utility : MonoBehaviour {
         return p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height;
     }
 
+    public delegate bool Condition(Point origin, Point offset);
+
     public static bool CheckNeighbours(Point p,int kernelSize,Condition breakCondition)
     {
         for(int xOffset = -kernelSize; xOffset <= kernelSize; xOffset++)
         {
             for(int yOffset = -kernelSize; yOffset <= kernelSize; yOffset++)
             {
-                if (breakCondition.Invoke())
+                Point offset = p + new Point(xOffset, yOffset);
+                if (!IsInsideGrid(offset)) continue;
+                else
                 {
-                    return true;
-                }
+                    if (breakCondition(p,offset))
+                    {
+                        return true;
+                    }
+                } 
             }
         }
         return false;
     }
 
-    public delegate bool Condition();
 
 }
 
