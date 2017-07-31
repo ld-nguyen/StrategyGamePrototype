@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Tile : MonoBehaviour
 {
     public int x { get; private set; }
@@ -10,6 +11,8 @@ public class Tile : MonoBehaviour
     private TextMesh debugCoords;
     private SpriteRenderer renderer;
     private Color originalColor;
+    public int cost;
+    public List<UnitType> traversableByUnitType;
 
     public void SetCoords(int x, int y)
     {
@@ -18,6 +21,12 @@ public class Tile : MonoBehaviour
 
         if(debugCoords)
             debugCoords.text = x + "/" + y;
+    }
+
+    public void Setup(int xCoord, int yCoord, Vector3 unityPos)
+    {
+        SetCoords(xCoord, yCoord);
+        gameObject.transform.localPosition = unityPos;
     }
 
     void Awake()
@@ -45,5 +54,10 @@ public class Tile : MonoBehaviour
     void OnMouseExit()
     {
         renderer.material.color = originalColor;
+    }
+
+    public bool IsTraversableByUnit(UnitType unit)
+    {
+        return traversableByUnitType.Contains(unit);
     }
 }

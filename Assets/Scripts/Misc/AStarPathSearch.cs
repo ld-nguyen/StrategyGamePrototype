@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-/*
+/* 
+ * 
  * A* Pathfinding script based on the following Materials:
  * 
  * Pseudocode from Sebastian Lague's explanation of the A* algorithm
@@ -20,28 +21,32 @@ public class Node : System.IComparable
     public Point coords { get; private set; }
     public float g;
     public float h;
-    public float f { get { return g + h; } }
+    public float f { get { return g + h + externalCost; } }
+    public float externalCost;
     public Node parent;
 
-    public Node(Point p)
+    public Node(Point p, float weight = 0)
     {
         coords = p;
         g = 0;
         h = 0;
+        externalCost = weight;
     }
 
-    public Node(Point p, int gCost, int hCost)
+    public Node(Point p, int gCost, int hCost, float weight = 0)
     {
         coords = p;
         g = gCost;
         h = hCost;
+        externalCost = weight;
     }
 
-    public Node(Point p, Point start, Point goal)
+    public Node(Point p, Point start, Point goal, float weight = 0)
     {
         coords = p;
         g = Utility.ManhattanDistance(start, p);
         h = Utility.ManhattanDistance(p, goal);
+        externalCost = weight;
     }
 
     public int CompareTo(object obj)
@@ -61,26 +66,27 @@ public class Node : System.IComparable
         return coords.Equals(p);
     }
 
-    public void CalculateCosts(Point start, Point goal)
+    public void CalculateCosts(Point start, Point goal, float nodeWeight)
     {
         g = Utility.ManhattanDistance(start, coords);
         h = Utility.ManhattanDistance(coords, goal);
+        externalCost = nodeWeight;
     }
 }
 
 public class AStarPathSearch
 {
+    //TODO: Factor External cost to nodes
+    public delegate int ExternalCostFactor(Point p);
+    public delegate bool TraversableCondition(Point p);
     private static Point startPoint;
     private static Point goalPoint;
-    private static List<TerrainType> allowedTerrains;
 
-    public static List<Point> FindPath(Point start,Point goal, List<TerrainType> traversableTerrains = null)
+    public static List<Point> FindPath(Point start,Point goal, TraversableCondition isTraversableCondition, ExternalCostFactor externalCostOffset = null)
     {
         //Caching Parameters for the other methods
         startPoint = start;
         goalPoint = goal;
-        allowedTerrains = traversableTerrains;
-
         List<Node> openList = new List<Node>();
         List<Node> closedList = new List<Node>();
 
@@ -102,14 +108,19 @@ public class AStarPathSearch
 
                 foreach(Node neighbour in neighbours)
                 {
-                    if (closedList.Contains(neighbour) || !IsTraversableTerrain(neighbour)) // Add condition for non traversable nodes
+                    if (closedList.Contains(neighbour) || !isTraversableCondition(neighbour.coords))
                     {
                         continue;
                     }
 
-                    float newCost = currentNode.g + Utility.ManhattanDistance(currentNode.coords,neighbour.coords);
+                float newCost = currentNode.g + Utility.ManhattanDistance(currentNode.coords,neighbour.coords);
+                float costOffset = 0;
+                if (externalCostOffset != null)
+                {
+                    costOffset += externalCostOffset(neighbour.coords);
+                }
 
-                    if(newCost < neighbour.g || !openList.Contains(neighbour))
+                    if(newCost + costOffset < neighbour.g || !openList.Contains(neighbour))
                     {
                         neighbour.g = newCost;
                         neighbour.h = Utility.ManhattanDistance(neighbour.coords, goal);
@@ -151,7 +162,7 @@ public class AStarPathSearch
                 else
                 {
                     Point neighbour = currentNode.coords.GetNeighbour(xOffset, yOffset);
-                    if (Utility.IsInsideGrid(neighbour)) //TODO: Check if traverseable as well
+                    if (Utility.IsInsideGrid(neighbour)) 
                     {
                         neighbours.Add(new Node(neighbour, startPoint, goalPoint));
                     }
@@ -195,21 +206,5 @@ public class AStarPathSearch
             currentNode = currentNode.parent;
         }
         return path; 
-    }
-
-    private static bool IsTraversableTerrain(Node n)
-    {
-        if(allowedTerrains.Count <= 0)
-        {
-            return true;
-        }
-        else
-        {
-            if (allowedTerrains.Contains(LevelGenerator.Instance.TerrainAtPoint(n.coords)))
-            {
-                return true;
-            }
-            else return false;
-        }
     }
 }

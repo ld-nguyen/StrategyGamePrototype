@@ -120,7 +120,7 @@ public class LevelGenerator : MonoBehaviour
         }
     }
 
-    void Start()
+    public void StartLevelGeneration()
     {
         switch (levelGeneration)
         {
@@ -131,7 +131,6 @@ public class LevelGenerator : MonoBehaviour
                 break;
         }
     }
-
     private void GenerateProcedualLevel()
     {
         elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings);
@@ -143,6 +142,16 @@ public class LevelGenerator : MonoBehaviour
         terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugText) ShowPerlinOnTexture();
+        InitializePerlinMap();
+    }
+
+    private void GenerateDebugLevel()
+    {
+        terrainMap = new TerrainType[mapDimensions.width * mapDimensions.height];
+        for(int i = 0; i < mapDimensions.width * mapDimensions.height; i++)
+        {
+            terrainMap[i] = TerrainType.Grass;
+        }
         InitializePerlinMap();
     }
 
@@ -178,6 +187,7 @@ public class LevelGenerator : MonoBehaviour
     public void InitializePerlinMap()
     {
         Vector3 spawnPos;
+        Tile[] gameMap = new Tile[terrainMap.Length];
         for (int i = 0; i < terrainMap.Length; i++)
         {
             int x = (i % mapDimensions.width);
@@ -185,9 +195,11 @@ public class LevelGenerator : MonoBehaviour
             spawnPos = new Vector3(x, y, 0);
 
             GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
-            tile.transform.localPosition = spawnPos;
-            tile.GetComponent<Tile>().SetCoords(x, y);
+            Tile newTile = tile.GetComponent<Tile>();
+            newTile.Setup(x, y, spawnPos);
+            gameMap[i] = newTile;
         }
+        GameManager.Instance.SetGameMap(gameMap);
     }
     public void RegenerateTerrain()
     {
@@ -195,8 +207,7 @@ public class LevelGenerator : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-
-        GenerateProcedualLevel();
+        GameManager.Instance.SetupGame();
     }
 
     private void ShowPerlinOnTexture() //Debug Method

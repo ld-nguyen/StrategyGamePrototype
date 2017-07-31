@@ -43,7 +43,7 @@ public class RoadGenerator {
 
             //Find Path with A*
             List<Point> path = new List<Point>();
-            path = AStarPathSearch.FindPath(start, end, param.roadTerrains);
+            path = AStarPathSearch.FindPath(start, end, IsTraversableTerrain);
             //Draw Path on grid
             if (path.Count > 0)
             {
@@ -79,7 +79,22 @@ public class RoadGenerator {
 
     public static TerrainType GetTerrainAtPoint(Point p)
     {
-        Debug.Log("Terrain at Point p (" + p.ToString() + ") is " + grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x]);
         return grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x];
+    }
+
+    private static bool IsTraversableTerrain(Point p)
+    {
+        if (parameters.roadTerrains.Count <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            if (parameters.roadTerrains.Contains(LevelGenerator.Instance.TerrainAtPoint(p)))
+            {
+                return true;
+            }
+            else return false;
+        }
     }
 }
