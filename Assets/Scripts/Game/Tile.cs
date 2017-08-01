@@ -5,8 +5,7 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public int x { get; private set; }
-    public int y { get; private set; }
+    public Point coordinates { get; private set; }
 
     private TextMesh debugCoords;
     private SpriteRenderer spriteRenderer;
@@ -15,11 +14,11 @@ public class Tile : MonoBehaviour
 
     public int cost;
     public List<UnitType> traversableByUnitType;
+    public Unit unitOnTile { get; private set; }
 
     public void SetCoords(int x, int y)
     {
-        this.x = x;
-        this.y = y;
+        coordinates = new Point(x, y);
 
         if(debugCoords)
             debugCoords.text = x + "/" + y;
@@ -31,6 +30,7 @@ public class Tile : MonoBehaviour
         gameObject.transform.localPosition = unityPos;
     }
 
+    #region MonoBehavior Overrides
     void Awake()
     {
         debugCoords = GetComponentInChildren<TextMesh>();
@@ -46,6 +46,11 @@ public class Tile : MonoBehaviour
     void OnMouseDown()
     {
         spriteRenderer.material.color = Color.blue;
+        Unit currentSelectedUnit = UnitManager.Instance.GetCurrentSelectedUnit();
+        if (currentSelectedUnit && currentSelectedUnit.TileIsInMovementArea(this))
+        {
+            currentSelectedUnit.MoveToTile(this);
+        }
     }
 
     void OnMouseUp()
@@ -59,7 +64,7 @@ public class Tile : MonoBehaviour
         if (isHighlighted) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
         else spriteRenderer.material.color = originalColor;
     }
-
+    #endregion
     public bool IsTraversableByUnit(UnitType unit)
     {
         return traversableByUnitType.Contains(unit);
@@ -71,5 +76,14 @@ public class Tile : MonoBehaviour
         if (shouldHighlight) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
         else spriteRenderer.material.color = originalColor;
     }
+    
+    public void SetUnitOnTile(Unit unit)
+    {
+        unitOnTile = unit;
+    }
 
+    public void OnUnitExit()
+    {
+        SetUnitOnTile(null);
+    }
 }

@@ -234,7 +234,9 @@ public class LevelGenerator : MonoBehaviour
         moisture.Apply();
         elevation.Apply();
 
+        debugMoisturePlane.gameObject.SetActive(true);
         debugMoisturePlane.material.mainTexture = moisture;
+        debugElevationPlane.gameObject.SetActive(true);
         debugElevationPlane.material.mainTexture = elevation;
     }
 

@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     private LevelGenerator levelGen;
     private Tile[] gameMap;
+    public bool playerCanInteract { get; private set; }
 
     [Header("Game Parameters")]
     public Color mouseOverTileColor;
@@ -45,5 +46,5 @@ public class GameManager : MonoBehaviour
         return gameMap[y * levelGen.mapDimensions.width + x];
     }
 
-    
+    public void SetGameInteractable(bool canInteract) { playerCanInteract = canInteract; }
 }

@@ -39,7 +39,7 @@ public class UnitManager: MonoBehaviour {
                 do
                 {
                     spawnpoint = Point.GetRandomPoint();
-                }while(!GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.type));
+                }while(!GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.unitType));
 
                 newUnit.SetUnitPosition(spawnpoint);
             }
@@ -54,6 +54,11 @@ public class UnitManager: MonoBehaviour {
     public Unit GetCurrentSelectedUnit()
     {
         return selectedUnit;
+    }
+
+    public void OnUnitUnselected()
+    {
+        if(selectedUnit) selectedUnit.HighlightMovementArea(false);
     }
 
 }
