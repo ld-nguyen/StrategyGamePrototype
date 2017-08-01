@@ -6,18 +6,17 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     private LevelGenerator levelGen;
-    private UnitManager unitManager;
     private Tile[] gameMap;
 
     [Header("Game Parameters")]
-    public Color tileHigh;
+    public Color mouseOverTileColor;
+    public Color highlightTileColor;
     public int unitCountPerSide;
 
     void Awake()
     {
         Instance = this;
         levelGen = LevelGenerator.Instance;
-        unitManager = ScriptableObject.CreateInstance<UnitManager>();
     }
 
     void Start()
@@ -28,7 +27,7 @@ public class GameManager : MonoBehaviour
     public void SetupGame()
     {
         levelGen.StartLevelGeneration();
-        unitManager.PlaceUnits();
+        UnitManager.Instance.PlaceUnits();
     }
 
     public void SetGameMap(Tile[] map)

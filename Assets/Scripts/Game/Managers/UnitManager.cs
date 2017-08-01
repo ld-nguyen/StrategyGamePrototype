@@ -2,11 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitManager: ScriptableObject {
+public class UnitManager: MonoBehaviour {
+
+    public static UnitManager Instance { get; private set; }
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     private List<Unit> playerUnits;
     private List<Unit> enemyUnits;
 
+    private Unit selectedUnit;
 
     public void PlaceUnits()
     {
@@ -37,4 +45,15 @@ public class UnitManager: ScriptableObject {
             }
         }
     }
+
+    public void SetSelectedUnit(Unit unit)
+    {
+        selectedUnit = unit;
+    }
+
+    public Unit GetCurrentSelectedUnit()
+    {
+        return selectedUnit;
+    }
+
 }

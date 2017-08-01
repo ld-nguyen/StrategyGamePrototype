@@ -9,8 +9,10 @@ public class Tile : MonoBehaviour
     public int y { get; private set; }
 
     private TextMesh debugCoords;
-    private SpriteRenderer renderer;
+    private SpriteRenderer spriteRenderer;
     private Color originalColor;
+    private bool isHighlighted;
+
     public int cost;
     public List<UnitType> traversableByUnitType;
 
@@ -32,32 +34,42 @@ public class Tile : MonoBehaviour
     void Awake()
     {
         debugCoords = GetComponentInChildren<TextMesh>();
-        renderer = GetComponent<SpriteRenderer>();
-        if(renderer) originalColor = renderer.material.color;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if(spriteRenderer) originalColor = spriteRenderer.material.color;
     }
 
     void OnMouseEnter()
     {
-        renderer.material.color = GameManager.Instance.tileHigh;
+        spriteRenderer.material.color = GameManager.Instance.mouseOverTileColor;
     }
 
     void OnMouseDown()
     {
-        renderer.material.color = Color.blue;
+        spriteRenderer.material.color = Color.blue;
     }
 
     void OnMouseUp()
     {
-        renderer.material.color = GameManager.Instance.tileHigh;
+        if (isHighlighted) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
+        else spriteRenderer.material.color = originalColor;
     }
 
     void OnMouseExit()
     {
-        renderer.material.color = originalColor;
+        if (isHighlighted) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
+        else spriteRenderer.material.color = originalColor;
     }
 
     public bool IsTraversableByUnit(UnitType unit)
     {
         return traversableByUnitType.Contains(unit);
     }
+
+    public void Highlight(bool shouldHighlight)
+    {
+        isHighlighted = shouldHighlight;
+        if (shouldHighlight) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
+        else spriteRenderer.material.color = originalColor;
+    }
+
 }

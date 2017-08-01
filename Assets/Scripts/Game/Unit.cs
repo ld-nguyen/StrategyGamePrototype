@@ -19,6 +19,8 @@ public class Unit : MonoBehaviour
     private int x;
     private int y;
 
+    private List<Tile> currentMovementArea;
+
     public void SetUnitSide(bool belongsToPlayerSide)
     {
         belongsToPlayer1 = belongsToPlayerSide;
@@ -38,12 +40,21 @@ public class Unit : MonoBehaviour
 
     public void OnMouseDown()
     {
-
+        if (!IsSelected())
+        {
+            UnitManager.Instance.SetSelectedUnit(this);
+            HighlightMovementArea();
+        }
     }
 
     public void HighlightMovementArea()
     {
-        
+        currentMovementArea = GetMovementArea();
+
+        foreach(Tile tile in currentMovementArea)
+        {
+            tile.Highlight(true);
+        }
     }
 
     public List<Tile> GetMovementArea()
@@ -57,7 +68,7 @@ public class Unit : MonoBehaviour
                 if (xOffset == 0 && yOffset == 0) continue;
 
                 Point offset = currentPoint + new Point(xOffset, yOffset);
-                if (Utility.ManhattanDistance(currentPoint, offset) < movementRange &&
+                if (Utility.ManhattanDistance(currentPoint, offset) <= movementRange &&
                     Utility.IsInsideGrid(offset) &&
                     GameManager.Instance.GetTile(offset).IsTraversableByUnit(type))
                 {
@@ -68,4 +79,8 @@ public class Unit : MonoBehaviour
         return movementArea;
     }
 
+    public bool IsSelected()
+    {
+        return this == UnitManager.Instance.GetCurrentSelectedUnit();
+    }
 }
