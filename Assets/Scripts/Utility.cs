@@ -80,6 +80,18 @@ public struct Point
         return new Point(Random.Range(0, LevelGenerator.Instance.mapDimensions.width), Random.Range(0, LevelGenerator.Instance.mapDimensions.height));
     }
 
+    public static Point GetRandomOffset(Point p, int maxOffsetValue)
+    {
+        Point newPoint;
+        do
+        {
+            newPoint = p + new Point(Random.Range(-maxOffsetValue, maxOffsetValue), Random.Range(-maxOffsetValue, maxOffsetValue));
+        } while (!newPoint.IsInsideGrid());
+
+        return newPoint;
+        
+    }
+
     public override string ToString()
     {
         return " x: " + x + " y: " + y;
