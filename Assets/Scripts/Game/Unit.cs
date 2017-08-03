@@ -11,13 +11,19 @@ public enum UnitType
     Sea,
 }
 
+public enum UnitPhase
+{
+    MovePhase,
+    ActionPhase,
+    EndPhase,
+}
+
 public class Unit : MonoBehaviour
 {
     public UnitType unitType;
+    private UnitPhase turnPhase;
     public int movementRange;
-
-    private bool belongsToPlayer1;
-    public bool unitCanMove { get; private set; }
+    public int belongsToSide;
     private Point coordinates;
 
     private List<Tile> currentMovementArea;
@@ -27,9 +33,43 @@ public class Unit : MonoBehaviour
         currentMovementArea = new List<Tile>();
     }
 
-    public void SetUnitSide(bool belongsToPlayerSide)
+    public void OnMouseDown()
     {
-        belongsToPlayer1 = belongsToPlayerSide;
+        if (!IsSelected() && BelongsToCurrentPlayer()  &&GameManager.Instance.playerCanInteract)
+        {
+            UnitManager.Instance.OnUnitUnselected();
+            UnitManager.Instance.SetSelectedUnit(this);
+            if (turnPhase == UnitPhase.MovePhase)
+            {
+                HighlightMovementArea(true);
+            }
+        }
+    }
+
+    public void OnNewTurn()
+    {
+        turnPhase = UnitPhase.MovePhase;
+    }
+
+    public bool IsSelected()
+    {
+        return this == UnitManager.Instance.GetCurrentSelectedUnit();
+    }
+
+    public bool BelongsToCurrentPlayer()
+    {
+        if (GameManager.Instance.turnOfSide == belongsToSide)
+        {
+            return true;
+        }
+        else return false;
+    }
+
+    public void SetUnitSide(int faction, Color sideColor)
+    {
+        belongsToSide = faction;
+        
+        GetComponent<SpriteRenderer>().color = sideColor;
     }
 
     public void SetUnitPosition(Point p)
@@ -42,16 +82,6 @@ public class Unit : MonoBehaviour
     {
         coordinates = new Point(x, y);
         gameObject.transform.localPosition = new Vector3(x, y,-0.2f);
-    }
-
-    public void OnMouseDown()
-    {
-        if (!IsSelected())
-        {
-            UnitManager.Instance.OnUnitUnselected();
-            UnitManager.Instance.SetSelectedUnit(this);
-            HighlightMovementArea(true);
-        }
     }
 
     public void HighlightMovementArea(bool setHighlight)
@@ -90,24 +120,12 @@ public class Unit : MonoBehaviour
     {
         HighlightMovementArea(false);
         GameManager.Instance.SetGameInteractable(false);
+        GameManager.Instance.GetTile(coordinates).OnUnitExit();
+
         List<Point> path = AStarPathSearch.FindPath(coordinates, tile.coordinates, UnitCanEnterTile);
         path.Reverse();
         coordinates = tile.coordinates;
         StartCoroutine(LerpThroughPath(path));
-    }
-
-    public bool IsSelected()
-    {
-        return this == UnitManager.Instance.GetCurrentSelectedUnit();
-    }
-
-    public bool TileIsInMovementArea(Tile t)
-    {
-        if(currentMovementArea.Count <= 0)
-        {
-            GetMovementArea();
-        }
-        return currentMovementArea.Contains(t);
     }
 
     public bool UnitCanEnterTile(Point p)
@@ -120,9 +138,19 @@ public class Unit : MonoBehaviour
         else { return false; }
     }
 
+    public bool TileIsInMovementArea(Tile t)
+    {
+        if(currentMovementArea.Count <= 0)
+        {
+            GetMovementArea();
+        }
+        return currentMovementArea.Contains(t);
+    }
+
     public void OnUnitMoveComplete()
     {
-        unitCanMove = false;
+        turnPhase = UnitPhase.ActionPhase;
+        GameManager.Instance.GetTile(coordinates).SetUnitOnTile(this);
     }
 
     IEnumerator LerpThroughPath(List<Point> path)
@@ -141,6 +169,8 @@ public class Unit : MonoBehaviour
                 yield return new WaitForEndOfFrame();
             } while (lerpProgress <= 1);
         }
+        OnUnitMoveComplete();
         GameManager.Instance.SetGameInteractable(true);
     }
+
 }

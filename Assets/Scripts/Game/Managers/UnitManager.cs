@@ -6,39 +6,47 @@ public class UnitManager: MonoBehaviour {
 
     public static UnitManager Instance { get; private set; }
 
+    private List<Unit>[] unitListForSide;
+    public Color[] sideColors { get; private set; }
+
+
     void Awake()
     {
         Instance = this;
     }
 
-    private List<Unit> playerUnits;
-    private List<Unit> enemyUnits;
 
     private Unit selectedUnit;
 
     public void PlaceUnits()
     {
-        playerUnits =  new List<Unit>();
-        enemyUnits = new List<Unit>();
+        unitListForSide = new List<Unit>[GameManager.Instance.sides];
+        sideColors = new Color[GameManager.Instance.sides];
 
-
-        for (int side = 0; side < 2; side++)
+        for (int side = 0; side < GameManager.Instance.sides; side++)
         {
+            unitListForSide[side] = new List<Unit>();
+            sideColors[side] = new Color(Random.value, Random.value, Random.value);
+            Debug.Log(sideColors[side].ToString());
+
+            Point centerPoint; //Centerpoint to spawn units around
+            do
+            {
+                centerPoint = Point.GetRandomPoint();
+            } while (LevelGenerator.Instance.TerrainAtPoint(centerPoint) != TerrainType.Grass);
+
             for (int unit = 0; unit < GameManager.Instance.unitCountPerSide; unit++)
             {
                 //TODO: Selecting different unit types
                 Unit newUnit = Instantiate(Resources.Load("Unit", typeof(Unit)),LevelGenerator.Instance.parentGO.transform) as Unit;
-                //TODO: Rework side assignment (This is horrible :( )
-                bool isFriendly = side == 0 ? true : false;
-
-                newUnit.SetUnitSide(isFriendly);
-                if (isFriendly) playerUnits.Add(newUnit);
-                else enemyUnits.Add(newUnit);
-
+                //Assign unit to side
+                unitListForSide[side].Add(newUnit);
+                newUnit.SetUnitSide(side, sideColors[side]);
+                //Calculate spawnpoint and set unit to tile on spawnpoint
                 Point spawnpoint;
                 do
                 {
-                    spawnpoint = Point.GetRandomPoint();
+                    spawnpoint = Point.GetRandomOffset(centerPoint,4);
                 }while(!GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.unitType));
 
                 newUnit.SetUnitPosition(spawnpoint);
@@ -59,6 +67,20 @@ public class UnitManager: MonoBehaviour {
     public void OnUnitUnselected()
     {
         if(selectedUnit) selectedUnit.HighlightMovementArea(false);
+    }
+
+    public void ResetUnits(int side)
+    {
+        List<Unit> unitList = unitListForSide[side];
+        foreach(Unit u in unitList)
+        {
+            u.OnNewTurn();
+        }
+    }
+
+    public Color GetCurrentSideColor()
+    {
+        return sideColors[GameManager.Instance.turnOfSide];
     }
 
 }

@@ -79,7 +79,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitType: 0
-  movementRange: 2
+  movementRange: 3
 --- !u!212 &212528213718320286
 SpriteRenderer:
   m_ObjectHideFlags: 1

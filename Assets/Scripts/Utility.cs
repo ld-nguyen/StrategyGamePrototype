@@ -51,7 +51,6 @@ public class Utility : MonoBehaviour {
         return false;
     }
 
-
 }
 
 public struct Point

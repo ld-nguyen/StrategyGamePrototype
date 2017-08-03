@@ -67,7 +67,7 @@ public class Tile : MonoBehaviour
     #endregion
     public bool IsTraversableByUnit(UnitType unit)
     {
-        return traversableByUnitType.Contains(unit);
+        return traversableByUnitType.Contains(unit) && !unitOnTile;
     }
 
     public void Highlight(bool shouldHighlight)
