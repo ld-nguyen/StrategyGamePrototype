@@ -47,7 +47,7 @@ public class UnitManager: MonoBehaviour {
                 do
                 {
                     spawnpoint = Point.GetRandomOffset(centerPoint,4);
-                }while(!GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.unitType));
+                }while(!spawnpoint.IsInsideGrid() || !GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.unitType));
 
                 newUnit.SetUnitPosition(spawnpoint);
             }

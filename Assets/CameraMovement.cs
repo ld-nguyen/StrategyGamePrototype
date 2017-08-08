@@ -22,6 +22,14 @@ public class CameraMovement : MonoBehaviour {
         {
             gameObject.transform.position += Vector3.right;
         }
+        if (Input.GetAxis("Mouse ScrollWheel") > 0)
+        {
+            gameObject.GetComponent<Camera>().orthographicSize -= 0.5f;
+        }
+        if (Input.GetAxis("Mouse ScrollWheel") < 0)
+        {
+            gameObject.GetComponent<Camera>().orthographicSize += 0.5f;
+        }
 
     }
 }

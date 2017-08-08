@@ -397,10 +397,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: efa894c4c60bcc5459427de4424954f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelGeneration: 1
+  levelGeneration: 0
   mapDimensions:
-    width: 50
-    height: 50
+    width: 70
+    height: 70
   parentGO: {fileID: 210405994}
   biomePrefabs:
   - type: 7
@@ -421,18 +421,20 @@ MonoBehaviour:
     prefab: {fileID: 1637903646547178, guid: da16331fefd686047b40982d5ca7c713, type: 2}
   - type: 8
     prefab: {fileID: 1637903646547178, guid: f1ae11706ce882f4a82f2ec3966a7e84, type: 2}
+  - type: 9
+    prefab: {fileID: 1637903646547178, guid: 95abb6920ecac4c4dac1408c42f73fd8, type: 2}
   tileSize: 5
   showDebugText: 1
   perlinBiomeSettings:
-  - perlinElevationThreshold: 0.27
+  - perlinElevationThreshold: 0.22
     subBiomes:
     - perlinMoistureThreshold: 1
       biome: 0
-  - perlinElevationThreshold: 0.29
+  - perlinElevationThreshold: 0.23
     subBiomes:
     - perlinMoistureThreshold: 1
       biome: 6
-  - perlinElevationThreshold: 0.8
+  - perlinElevationThreshold: 0.85
     subBiomes:
     - perlinMoistureThreshold: 0.15
       biome: 7
@@ -440,7 +442,7 @@ MonoBehaviour:
       biome: 1
     - perlinMoistureThreshold: 1
       biome: 5
-  - perlinElevationThreshold: 0.95
+  - perlinElevationThreshold: 0.92
     subBiomes:
     - perlinMoistureThreshold: 1
       biome: 2
@@ -451,32 +453,63 @@ MonoBehaviour:
   debugElevationPlane: {fileID: 1886175686}
   debugMoisturePlane: {fileID: 2089186612}
   elevationSettings:
-    octaves: 5
-    scale: 34
+    octaves: 8
+    scale: 15
     lacunarity: 2
-    persistence: 0.5
+    persistence: 0.68
+    useModifiers: 1
+    upwardsOffset: -0.2
+    edgePushdown: 0.2
+    coefficient: 1
   moistureSettings:
-    octaves: 5
-    scale: 67
+    octaves: 9
+    scale: 49
     lacunarity: 2
     persistence: 0.5
+    useModifiers: 0
+    upwardsOffset: 0
+    edgePushdown: 0
+    coefficient: 0
   forestParam:
     amountOfSeeds: 7
     placementChanceBaseChance: 0.2
+    minimumDistance: 3
     kernelSize:
-      min: 1
-      max: 4
+      min: 2
+      max: 6
     amountOfGrowthSteps:
       min: 4
-      max: 8
+      max: 9
     desiredTerrain: 4
     allowedBiomes: 010000000200000005000000
+  cities:
+    amountOfSeeds: 0
+    placementChanceBaseChance: 0
+    minimumDistance: 0
+    kernelSize:
+      min: 2
+      max: 3
+    amountOfGrowthSteps:
+      min: 3
+      max: 4
+    desiredTerrain: 9
+    allowedBiomes: 010000000400000007000000
   roadParam:
-    numberOfRoads: 1
-    minimumDistance: 30
+    numberOfRoads: 0
+    minimumDistance: 0
+    startAndEndTerrain: 09000000
+    roadTerrains: 01000000020000000400000006000000
+    desiredRoadTerrain: 8
+  riversParam:
+    numberOfRoads: 3
+    minimumDistance: 15
     startAndEndTerrain: 00000000
-    roadTerrains: 0100000000000000040000000600000003000000
+    roadTerrains: 000000000100000002000000030000000400000006000000
     desiredRoadTerrain: 0
+  poissonParam:
+    radius: 30
+    sampleSize: 5
+    terrainToDistributeOn: 1
 --- !u!4 &270902884
 Transform:
   m_ObjectHideFlags: 0
@@ -504,8 +537,12 @@ MonoBehaviour:
   turnOfSide: 0
   mouseOverTileColor: {r: 0.6397059, g: 0.6261462, b: 0.5503352, a: 1}
   highlightTileColor: {r: 0.52129817, g: 0.58823526, b: 0.44550171, a: 1}
-  sides: 3
-  unitCountPerSide: 4
+  sides: 2
+  unitCountPerSide: 1
+  pickupsParam:
+    radius: 0
+    sampleSize: 0
+    terrainToDistributeOn: 0
 --- !u!114 &270902886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -858,7 +895,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &923692344
 Transform:
   m_ObjectHideFlags: 0

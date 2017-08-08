@@ -25,7 +25,7 @@ public class RoadGenerator {
             Point start;
             Point end;
 
-            do //TODO: Better selection and rules of start and end points aka. No start on Water, or Beaches
+            do
             {
                 //Select Start
                 do

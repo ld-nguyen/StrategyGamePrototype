@@ -47,19 +47,8 @@ public enum TerrainType
     Beach,
     Desert,
     Road,
+    City,
     None // Used for debug purposes
-}
-
-[System.Serializable]
-public struct PerlinMapParameters
-{
-    public int octaves;
-    [Range(2, 100)]
-    public float scale;
-    [Range(1, 2)]
-    public float lacunarity;
-    [Range(0, 1)]
-    public float persistence;
 }
 
 [System.Serializable]
@@ -88,10 +77,15 @@ public class LevelGenerator : MonoBehaviour
     public Renderer debugMoisturePlane;
     public PerlinMapParameters elevationSettings;
     public PerlinMapParameters moistureSettings;
+
     [Header("Seed Growth Parameters")]
     public SeedGrowthParameters forestParam;
+    public SeedGrowthParameters cities;
     [Header("Road Generation Parameters")]
     public RoadGeneratorParameters roadParam;
+    public RoadGeneratorParameters riversParam;
+    [Header("PossionDisc Parametrs")]
+    public PoissonDiscParameters poissonParam;
     //
     public static LevelGenerator Instance { get; private set; }
 
@@ -125,6 +119,7 @@ public class LevelGenerator : MonoBehaviour
         switch (levelGeneration)
         {
             case LevelGenerationType.Debug:
+                GenerateDebugLevel();
                 break;
             case LevelGenerationType.Procedual:
                 GenerateProcedualLevel();
@@ -139,6 +134,9 @@ public class LevelGenerator : MonoBehaviour
         terrainMap = CombinePerlinMaps();
 
         terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, cities, mapDimensions);
+        
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
         terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugText) ShowPerlinOnTexture();
@@ -152,6 +150,13 @@ public class LevelGenerator : MonoBehaviour
         {
             terrainMap[i] = TerrainType.Grass;
         }
+
+        List<Point> forestPoints = PoissonDisc.Distribute(terrainMap, poissonParam);
+        foreach (Point p in forestPoints)
+        {
+            terrainMap[p.y * mapDimensions.width + p.x] = TerrainType.Forest;
+        }
+
         InitializePerlinMap();
     }
 
@@ -164,8 +169,6 @@ public class LevelGenerator : MonoBehaviour
         }
         return perlinTerrain;
     }
-
-    //TODO: Fix shit naming
     private TerrainType GetBiome(float elevationValue, float moistureValue)
     {
         for (int i = 0; i < perlinBiomeSettings.Length; i++)

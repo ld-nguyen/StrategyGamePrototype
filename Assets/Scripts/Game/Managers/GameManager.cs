@@ -18,6 +18,10 @@ public class GameManager : MonoBehaviour
     public Color highlightTileColor;
     public int sides;
     public int unitCountPerSide;
+    [Header("Pickups stuff")]
+
+    public PoissonDiscParameters pickupsParam;
+
 
     void Awake()
     {

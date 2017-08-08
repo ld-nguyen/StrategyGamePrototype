@@ -19,6 +19,7 @@ public struct SeedGrowthParameters
 {
     public int amountOfSeeds;
     public float placementChanceBaseChance;
+    public float minimumDistance;
     public IntegerRange kernelSize;
     public IntegerRange amountOfGrowthSteps;
     public TerrainType desiredTerrain;
@@ -38,12 +39,18 @@ public class SeedGrowth : MonoBehaviour {
         parameters = param;
 
         Point seedLocation;
+        //HashSet<Point> otherPoints = new HashSet<Point>();
+        List<Point> seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam);
+
         for(int seed = 0; seed < param.amountOfSeeds; seed++)
         {
-            do
-            {
-                seedLocation = new Point(Random.Range(0, mapSettings.width), Random.Range(0, mapSettings.height));
-            } while (!IsCorrectTile(seedLocation));    
+            //do
+            //{
+            //    seedLocation = new Point(Random.Range(0, mapSettings.width), Random.Range(0, mapSettings.height));
+            //} while (!IsCorrectTile(seedLocation) && !IsFarEnoughFromOtherSeeds(seedLocation,otherPoints));
+            // otherPoints.Add(seedLocation);
+
+            seedLocation = seeds[Random.Range(0,seeds.Count)];
 
             for(int step = 0; step < param.amountOfGrowthSteps.GetRandomValue(); step++)
             {
@@ -99,4 +106,16 @@ public class SeedGrowth : MonoBehaviour {
         else return false;
     }
 
+    public static bool IsFarEnoughFromOtherSeeds(Point p, HashSet<Point> otherSeeds)
+    {
+        if(otherSeeds.Count <= 0) { return true; }
+        else
+        {
+            foreach(Point seed in otherSeeds)
+            {
+                if (Utility.EuclidianDistance(p, seed) < parameters.minimumDistance) return false;
+            }
+            return true;
+        }
+    }
 }

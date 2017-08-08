@@ -15,13 +15,16 @@ public class Tile : MonoBehaviour
     public int cost;
     public List<UnitType> traversableByUnitType;
     public Unit unitOnTile { get; private set; }
+    public bool showDebugCoords;
 
     public void SetCoords(int x, int y)
     {
         coordinates = new Point(x, y);
 
-        if(debugCoords)
+        if (debugCoords && showDebugCoords)
             debugCoords.text = x + "/" + y;
+        else
+            debugCoords.gameObject.SetActive(false);
     }
 
     public void Setup(int xCoord, int yCoord, Vector3 unityPos)
@@ -45,11 +48,14 @@ public class Tile : MonoBehaviour
 
     void OnMouseDown()
     {
-        spriteRenderer.material.color = Color.blue;
-        Unit currentSelectedUnit = UnitManager.Instance.GetCurrentSelectedUnit();
-        if (currentSelectedUnit && currentSelectedUnit.TileIsInMovementArea(this))
+        if (GameManager.Instance.playerCanInteract)
         {
-            currentSelectedUnit.MoveToTile(this);
+            spriteRenderer.material.color = Color.blue;
+            Unit currentSelectedUnit = UnitManager.Instance.GetCurrentSelectedUnit();
+            if (currentSelectedUnit && currentSelectedUnit.TileIsInMovementArea(this))
+            {
+                currentSelectedUnit.MoveToTile(this);
+            }
         }
     }
 

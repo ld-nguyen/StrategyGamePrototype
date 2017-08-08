@@ -150,6 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cost: 2
   traversableByUnitType: 0000000001000000
+  showDebugCoords: 0
 --- !u!212 &212615948100451512
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -190,6 +191,8 @@ SpriteRenderer:
   m_Size: {x: 0.32, y: 0.32}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
 --- !u!224 &224844155469842820
 RectTransform:
   m_ObjectHideFlags: 1

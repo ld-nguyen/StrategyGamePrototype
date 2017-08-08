@@ -11,18 +11,18 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 1637903646547178}
   m_IsPrefabParent: 1
---- !u!1 &1339734136796714
+--- !u!1 &1461656989725962
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4581694440296974}
-  - component: {fileID: 23767756436961582}
-  - component: {fileID: 102662370533307594}
+  - component: {fileID: 4118117438669376}
+  - component: {fileID: 23644439703031170}
+  - component: {fileID: 102280725770835586}
   m_Layer: 0
-  m_Name: DebugCoords (6)
+  m_Name: DebugCoords (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -37,15 +37,28 @@ GameObject:
   m_Component:
   - component: {fileID: 4462202802676126}
   - component: {fileID: 212615948100451512}
-  - component: {fileID: 114959326741730902}
-  - component: {fileID: 61256609369841760}
+  - component: {fileID: 114380662786276214}
+  - component: {fileID: 61910449755567564}
   m_Layer: 0
-  m_Name: Sand
+  m_Name: City
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
   m_IsActive: 1
+--- !u!4 &4118117438669376
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1461656989725962}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.44, y: 0.19938, z: 0}
+  m_LocalScale: {x: 0.26929, y: 0.26929, z: 0.26929}
+  m_Children: []
+  m_Father: {fileID: 4462202802676126}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4462202802676126
 Transform:
   m_ObjectHideFlags: 1
@@ -56,29 +69,16 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4581694440296974}
+  - {fileID: 4118117438669376}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4581694440296974
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1339734136796714}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.44, y: 0.19938, z: 0}
-  m_LocalScale: {x: 0.26929, y: 0.26929, z: 0.26929}
-  m_Children: []
-  m_Father: {fileID: 4462202802676126}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &23767756436961582
+--- !u!23 &23644439703031170
 MeshRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1339734136796714}
+  m_GameObject: {fileID: 1461656989725962}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -105,7 +105,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!61 &61256609369841760
+--- !u!61 &61910449755567564
 BoxCollider2D:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -130,13 +130,13 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!102 &102662370533307594
+--- !u!102 &102280725770835586
 TextMesh:
   serializedVersion: 3
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1339734136796714}
+  m_GameObject: {fileID: 1461656989725962}
   m_Text: X /  Y
   m_OffsetZ: -1
   m_CharacterSize: 1
@@ -151,7 +151,7 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
---- !u!114 &114959326741730902
+--- !u!114 &114380662786276214
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -162,7 +162,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76a1b1de4e3d2d04bb0de619eab9c475, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cost: 3
+  cost: 1
   traversableByUnitType: 0000000001000000
   showDebugCoords: 0
 --- !u!212 &212615948100451512
@@ -198,7 +198,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 2798767d1c2c9f444a5dbed3ebd29d2a, type: 3}
-  m_Color: {r: 0.98722106, g: 1, b: 0.86764705, a: 1}
+  m_Color: {r: 0.74264705, g: 0.74264705, b: 0.74264705, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

@@ -118,14 +118,18 @@ public class Unit : MonoBehaviour
 
     public void MoveToTile(Tile tile)
     {
-        HighlightMovementArea(false);
-        GameManager.Instance.SetGameInteractable(false);
-        GameManager.Instance.GetTile(coordinates).OnUnitExit();
+        if(turnPhase == UnitPhase.MovePhase)
+        {
+            HighlightMovementArea(false);
+            GameManager.Instance.SetGameInteractable(false);
+            GameManager.Instance.GetTile(coordinates).OnUnitExit();
 
-        List<Point> path = AStarPathSearch.FindPath(coordinates, tile.coordinates, UnitCanEnterTile);
-        path.Reverse();
-        coordinates = tile.coordinates;
-        StartCoroutine(LerpThroughPath(path));
+            List<Point> path = AStarPathSearch.FindPath(coordinates, tile.coordinates, UnitCanEnterTile);
+            path.Reverse();
+            coordinates = tile.coordinates;
+            StartCoroutine(LerpThroughPath(path));
+
+        }
     }
 
     public bool UnitCanEnterTile(Point p)

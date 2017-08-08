@@ -1,111 +1,104 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//TODO: Move some parts to utility class
 
 [System.Serializable]
 public struct PoissonDiscParameters
 {
-    public int amountOfSeeds;
     public int radius;
     public int sampleSize;
     public TerrainType terrainToDistributeOn;
-    public TerrainType desiredNewTerrain;
 }
 public class PoissonDisc {
 
     private static TerrainType[] grid;
     private static PoissonDiscParameters param;
     private static MapDimensions dimensions;
+    private static List<Point> activeSamplePoints;
 
-    public static TerrainType[] DistributeTerrainTile(TerrainType[] map, PoissonDiscParameters parameters, MapDimensions mapSettings)
+    public static List<Point> Distribute(TerrainType[] map, PoissonDiscParameters parameters)
     {
         grid = map;
         param = parameters;
-        dimensions = mapSettings;
-        List<Vector2> activeSamplePoints = new List<Vector2>();
-        Vector2 initialSamplePoint;
+        dimensions = LevelGenerator.Instance.mapDimensions;
+
+        List<Point> samplePoints = new List<Point>();
+
+        activeSamplePoints = new List<Point>();
+        Point initialSamplePoint;
         //InitialSample
         do
         {
-            initialSamplePoint = new Vector2(Random.Range(0, dimensions.width), Random.Range(0, dimensions.height));
+            initialSamplePoint = Point.GetRandomPoint();
         }
         while (!IsProperTerrainOnPoint(initialSamplePoint));
 
         activeSamplePoints.Add(initialSamplePoint);
-        PlaceSample(initialSamplePoint);
+        samplePoints.Add(initialSamplePoint);
 
         while (activeSamplePoints.Count > 0)
         {
-            Vector2 index = activeSamplePoints[Random.Range(0, activeSamplePoints.Count)];
-            for(int n = 0; n < param.sampleSize; n++)
-            {
-                Vector2 offset = Random.insideUnitCircle;
-                offset.Normalize();
-                offset *= Random.Range(param.radius, 2 * param.radius);
-                Vector2 newSample = index + offset;
+            Point index = activeSamplePoints[Random.Range(0, activeSamplePoints.Count)];
 
-                if (CheckNeighboursForSamples(newSample))
+            bool noSuitablePointFound = true;
+
+            for(int k = 0; k < param.sampleSize; k++)
+            {
+                Point offset;
+                do
                 {
-                    activeSamplePoints.Add(newSample);
-                    PlaceSample(newSample);
+                    offset = Point.GetRandomOffset(index, 2 * param.radius, param.radius);
+                } while (!IsProperTerrainOnPoint(offset));
+
+                if (!CheckNeighboursForSamples(offset, samplePoints))
+                {
+                    activeSamplePoints.Add(offset);
+                    samplePoints.Add(offset);
+                    noSuitablePointFound = false;
                 }
             }
+            if(noSuitablePointFound) activeSamplePoints.Remove(index);
+
         }
 
-        return null;
+        return samplePoints;
     }
 
 
-    private static bool CheckNeighboursForSamples(Vector2 point)
+    private static bool CheckNeighboursForSamples(Point point, List<Point> allPoints)
     {
-        for(int xOffset = -1 ; xOffset <= 1; xOffset++)
+        for(int xOffset = -param.radius; xOffset <= param.radius; xOffset++)
         {
-            for(int yOffset = -1; yOffset <= 1; yOffset++)
+            for(int yOffset = -param.radius; yOffset <= param.radius; yOffset++)
             {
-                Vector2 offset = point + new Vector2(xOffset, yOffset);
-                if (IsInsideGrid(offset))
+                Point offset = point + new Point(xOffset, yOffset);
+                if (offset.IsInsideGrid())
                 {
-                    if (!IsProperTerrainOnPoint(offset))
+                    if (allPoints.Contains(offset))
                     {
-                        if(grid[Mathf.FloorToInt(point.y) * dimensions.width + Mathf.FloorToInt(point.x)] != param.desiredNewTerrain && Vector2.Distance(point,offset) < param.radius)
+                        if(Utility.ManhattanDistance(point,offset) < param.radius)
                         {
-                            return false;
+                            return true;
                         }
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
-    private static bool CheckPoint(Vector2 point)
+    private static bool CheckPoint(Point point)
     {
-        if (IsInsideGrid(point) && IsProperTerrainOnPoint(point)) return true;
+        if (point.IsInsideGrid() && IsProperTerrainOnPoint(point)) return true;
         else return false;
     }
 
-    private static bool IsProperTerrainOnPoint(Vector2 point)
+    private static bool IsProperTerrainOnPoint(Point point)
     {
-        if (grid[Mathf.FloorToInt(point.y) * dimensions.width + Mathf.FloorToInt(point.x)] == param.terrainToDistributeOn)
+        if (grid[point.y * dimensions.width + point.x] == param.terrainToDistributeOn)
         {
             return true;
         }
         else return false;
-    }
-
-    private static bool IsInsideGrid(Vector2 p)
-    {
-        if (p.x >= 0 && p.x < dimensions.width && p.y >= 0 && p.y < dimensions.height)
-        {
-            return true;
-        }
-        else return false;
-    }
-
-    private static void PlaceSample(Vector2 p)
-    {
-        int coord = Mathf.FloorToInt(p.y) * dimensions.width + Mathf.FloorToInt(p.x);
-        grid[coord] = param.desiredNewTerrain;
     }
 }

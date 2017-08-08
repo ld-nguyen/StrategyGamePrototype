@@ -9,6 +9,14 @@ public class Utility : MonoBehaviour {
        return Mathf.Sqrt(((x1.x - x2.x) * (x1.x - x2.x) + (x1.y - x2.y) * (x1.y - x2.y)));
     }
 
+    public static float EuclidianDistanceFromCenter(int x, int y)
+    {
+        int centerX = LevelGenerator.Instance.mapDimensions.height / 2 ;
+        int centerY = LevelGenerator.Instance.mapDimensions.width / 2;
+
+        return EuclidianDistance(new Point(x, y), new Point(centerX, centerY));
+    }
+
     public static int ManhattanDistance(Point start, Point end)
     {
         int deltaX = Mathf.Abs(start.x - end.x);
@@ -79,13 +87,14 @@ public struct Point
         return new Point(Random.Range(0, LevelGenerator.Instance.mapDimensions.width), Random.Range(0, LevelGenerator.Instance.mapDimensions.height));
     }
 
-    public static Point GetRandomOffset(Point p, int maxOffsetValue)
+    public static Point GetRandomOffset(Point p, int maxOffsetValue,int minDistance = 0)
     {
         Point newPoint;
         do
         {
-            newPoint = p + new Point(Random.Range(-maxOffsetValue, maxOffsetValue), Random.Range(-maxOffsetValue, maxOffsetValue));
-        } while (!newPoint.IsInsideGrid());
+            Point offset = new Point(Random.Range(-maxOffsetValue, maxOffsetValue), Random.Range(-maxOffsetValue, maxOffsetValue));
+            newPoint = p + offset;
+        } while (!newPoint.IsInsideGrid() || Utility.EuclidianDistance(p,newPoint) < minDistance);
 
         return newPoint;
         
@@ -116,7 +125,6 @@ public struct Point
         }
         else return false;
     }
-
     
 }
 
