@@ -27,7 +27,6 @@ public class UnitManager: MonoBehaviour {
         {
             unitListForSide[side] = new List<Unit>();
             sideColors[side] = new Color(Random.value, Random.value, Random.value);
-            Debug.Log(sideColors[side].ToString());
 
             Point centerPoint; //Centerpoint to spawn units around
             do

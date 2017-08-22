@@ -133,11 +133,11 @@ public class LevelGenerator : MonoBehaviour
 
         terrainMap = CombinePerlinMaps();
 
-        terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
-        terrainMap = SeedGrowth.PopulateGrid(terrainMap, cities, mapDimensions);
+        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, cities, mapDimensions);
         
-        terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
-        terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
+        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
+        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugText) ShowPerlinOnTexture();
         InitializePerlinMap();
@@ -237,10 +237,16 @@ public class LevelGenerator : MonoBehaviour
         moisture.Apply();
         elevation.Apply();
 
-        debugMoisturePlane.gameObject.SetActive(true);
-        debugMoisturePlane.material.mainTexture = moisture;
-        debugElevationPlane.gameObject.SetActive(true);
-        debugElevationPlane.material.mainTexture = elevation;
+        if (debugMoisturePlane)
+        {
+            debugMoisturePlane.gameObject.SetActive(true);
+            debugMoisturePlane.material.mainTexture = moisture;
+        }
+        if (debugElevationPlane)
+        {
+            debugElevationPlane.gameObject.SetActive(true);
+            debugElevationPlane.material.mainTexture = elevation;
+        }
     }
 
     public TerrainType TerrainAtPoint(Point p)

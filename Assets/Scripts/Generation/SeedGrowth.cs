@@ -39,9 +39,11 @@ public class SeedGrowth : MonoBehaviour {
         parameters = param;
 
         Point seedLocation;
-        //HashSet<Point> otherPoints = new HashSet<Point>();
-        List<Point> seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam);
-
+        List<Point> seeds = new List<Point>();
+        if (parameters.amountOfSeeds > 0)
+        {
+            seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam);
+        }
         for(int seed = 0; seed < param.amountOfSeeds; seed++)
         {
             //do
