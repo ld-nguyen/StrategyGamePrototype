@@ -2,19 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 /* 
- * 
- * A* Pathfinding script based on the following Materials:
- * 
- * Pseudocode from Sebastian Lague's explanation of the A* algorithm
- * https://youtu.be/-L-WgKMFuhE?t=8m9s
- * 
- * Amit Patel's blogs about pathfinding and the A* algorithm
- * http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html (20.07.2017)
- * http://www.redblobgames.com/pathfinding/a-star/introduction.html (20.07.2017)
- * 
- * TODO: Factor in perlin heights in heuristics for Road Generation
- */
+* 
+* A* Pathfinding script based on the following Materials:
+* 
+* Pseudocode from Sebastian Lague's series on the explanation of the A* algorithm
+* https://youtu.be/-L-WgKMFuhE?t=8m9s
+* 
+* Amit Patel's blogs about pathfinding and the A* algorithm
+* http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html (20.07.2017)
+* http://www.redblobgames.com/pathfinding/a-star/introduction.html (20.07.2017)
+* 
+* TODO: Factor in perlin heights in heuristics for Road Generation
+*/
 
 public class Node : System.IComparable
 {
@@ -77,7 +78,7 @@ public class Node : System.IComparable
 public class AStarPathSearch
 {
     //TODO: Factor External cost to nodes
-    public delegate int ExternalCostFactor(Point p);
+    public delegate int ExternalCostFactor(Point currentNode, Point neighbourNode);
     public delegate bool TraversableCondition(Point p);
     private static Point startPoint;
     private static Point goalPoint;
@@ -117,7 +118,7 @@ public class AStarPathSearch
                 float costOffset = 0;
                 if (externalCostOffset != null)
                 {
-                    costOffset += externalCostOffset(neighbour.coords);
+                    costOffset += externalCostOffset(currentNode.coords,neighbour.coords);
                 }
 
                     if(newCost + costOffset < neighbour.g || !openList.Contains(neighbour))

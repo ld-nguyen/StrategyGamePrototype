@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public struct PoissonDiscParameters
+public struct PoissonDiskParameters
 {
     public int radius;
     public int sampleSize;
@@ -12,11 +12,11 @@ public struct PoissonDiscParameters
 public class PoissonDisc {
 
     private static TerrainType[] grid;
-    private static PoissonDiscParameters param;
+    private static PoissonDiskParameters param;
     private static MapDimensions dimensions;
     private static List<Point> activeSamplePoints;
 
-    public static List<Point> Distribute(TerrainType[] map, PoissonDiscParameters parameters)
+    public static List<Point> Distribute(TerrainType[] map, PoissonDiskParameters parameters)
     {
         grid = map;
         param = parameters;

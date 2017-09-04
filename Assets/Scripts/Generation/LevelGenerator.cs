@@ -48,6 +48,8 @@ public enum TerrainType
     Desert,
     Road,
     City,
+    DeepWater,
+    River,
     None // Used for debug purposes
 }
 
@@ -70,28 +72,28 @@ public class LevelGenerator : MonoBehaviour
     [Header("Tiles")]
     public Biome[] biomePrefabs;
     public int tileSize;
+    public float maxColorOffsetRange = 0.05f;
     [Header("Perlin Parameters")]
-    public bool showDebugText;
     public ElevationTier[] perlinBiomeSettings;
-    public Renderer debugElevationPlane;
-    public Renderer debugMoisturePlane;
     public PerlinMapParameters elevationSettings;
     public PerlinMapParameters moistureSettings;
-
     [Header("Seed Growth Parameters")]
     public SeedGrowthParameters forestParam;
-    public SeedGrowthParameters cities;
+    public SeedGrowthParameters citiesParam;
     [Header("Road Generation Parameters")]
     public RoadGeneratorParameters roadParam;
     public RoadGeneratorParameters riversParam;
-    [Header("PossionDisc Parametrs")]
-    public PoissonDiscParameters poissonParam;
-    //
+    [Header("Possion Disk Parametrs")]
+    public PoissonDiskParameters poissonParam;
+    [Header("Debug")]
+    public bool showDebugTextureForPerlin;
+    public Renderer debugElevationPlane;
+    public Renderer debugMoisturePlane;
     public static LevelGenerator Instance { get; private set; }
 
     private Dictionary<TerrainType, GameObject> prefabDictionary;
-    private float[] elevationMap;
-    private float[] moistureMap;
+    public float[] elevationMap { get; private set; }
+    public float[] moistureMap { get; private set; }
 
     private TerrainType[] terrainMap;
 
@@ -133,13 +135,13 @@ public class LevelGenerator : MonoBehaviour
 
         terrainMap = CombinePerlinMaps();
 
-        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
-        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, cities, mapDimensions);
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, citiesParam, mapDimensions);
         
-        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
-        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
-        if (showDebugText) ShowPerlinOnTexture();
+        if (showDebugTextureForPerlin) ShowPerlinOnTexture();
         InitializePerlinMap();
     }
 
@@ -186,7 +188,6 @@ public class LevelGenerator : MonoBehaviour
         }
         return TerrainType.None;
     }
-
     public void InitializePerlinMap()
     {
         Vector3 spawnPos;
@@ -199,7 +200,8 @@ public class LevelGenerator : MonoBehaviour
 
             GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
             Tile newTile = tile.GetComponent<Tile>();
-            newTile.Setup(x, y, spawnPos);
+            float colorOffset = GetColorOffset(Utility.GetGridValue(elevationMap,new Point(x,y)),terrainMap[i]);
+            newTile.Setup(x, y, spawnPos, colorOffset);
             gameMap[i] = newTile;
         }
         GameManager.Instance.SetGameMap(gameMap);
@@ -212,7 +214,6 @@ public class LevelGenerator : MonoBehaviour
         }
         GameManager.Instance.SetupGame();
     }
-
     private void ShowPerlinOnTexture() //Debug Method
     {
         int width = mapDimensions.width;
@@ -248,7 +249,42 @@ public class LevelGenerator : MonoBehaviour
             debugElevationPlane.material.mainTexture = elevation;
         }
     }
-
+    //Calculates a offset depending on the elevation value (val) and the position in the value range of the terrain type it is in
+    private float GetColorOffset(float val, TerrainType type)
+    {
+        float lowerEnd = 0f;
+        if (TerrainTypeIsInPerlinBiomeSettings(type))
+        {
+            for (int i = 0; i < perlinBiomeSettings.Length; i++)
+            {
+                if (val <= perlinBiomeSettings[i].perlinElevationThreshold)
+                {
+                    float higherEnd = perlinBiomeSettings[i].perlinElevationThreshold;
+                    return Mathf.Lerp(-maxColorOffsetRange, maxColorOffsetRange, Mathf.InverseLerp(lowerEnd, higherEnd, val));
+                }
+                else
+                {
+                    lowerEnd = perlinBiomeSettings[i].perlinElevationThreshold;
+                }
+            }
+            return 0;
+        }
+        else
+        {
+            return Mathf.Lerp(-maxColorOffsetRange, maxColorOffsetRange, val);
+        }
+    }
+    public bool TerrainTypeIsInPerlinBiomeSettings(TerrainType terrain)
+    {
+        for (int i = 0; i < perlinBiomeSettings.Length; i++)
+        {
+            for (int j = 0; j < perlinBiomeSettings[i].subBiomes.Length; j++)
+            {
+                if (perlinBiomeSettings[i].subBiomes[j].biome == terrain) return true;                
+            }
+        }
+        return false;
+    }
     public TerrainType TerrainAtPoint(Point p)
     {
         return terrainMap[p.y * mapDimensions.width + p.x];

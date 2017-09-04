@@ -108,7 +108,7 @@ public class SeedGrowth : MonoBehaviour {
         else return false;
     }
 
-    public static bool IsFarEnoughFromOtherSeeds(Point p, HashSet<Point> otherSeeds)
+    public static bool IsFarEnoughFromOtherSeeds(Point p, HashSet<Point> otherSeeds) //deprecated
     {
         if(otherSeeds.Count <= 0) { return true; }
         else

@@ -12,11 +12,6 @@ public struct PerlinMapParameters
     public float lacunarity;
     [Range(0.1f, 1)]
     public float persistence;
-    [Header("Modifiers")]
-    public bool useModifiers;
-    public float upwardsOffset;
-    public float edgePushdown;
-    public float coefficient;
 
     public PerlinMapParameters(float bF, float lac, float per)
     {
@@ -24,10 +19,6 @@ public struct PerlinMapParameters
         baseFrequency = bF * lac;
         lacunarity = lac;
         persistence = per;
-        useModifiers = false;
-        upwardsOffset = 0;
-        edgePushdown = 0;
-        coefficient = 0;
     }
 }
 
@@ -52,7 +43,6 @@ public class PerlinMapGenerator
         {
             int x = i % width;
             int y = Mathf.FloorToInt(i / width);
-            float distanceFromCenter = Utility.EuclidianDistanceFromCenter(x, y);
 
             float sampleValue = 0;
             float frequency = parameters.baseFrequency;
@@ -60,27 +50,26 @@ public class PerlinMapGenerator
 
             for (int octaveStep = 0; octaveStep < parameters.octaves; octaveStep++)
             {
-                sampleValue += GetNoiseSample(x + offset, y + offset, frequency, amplitude);     
-                //sampleValue = sampleValue * 2 - 1;
+                sampleValue += GetNoiseSample(x + offset, y + offset, frequency, amplitude);
                 amplitude *= parameters.persistence;
                 frequency *= parameters.lacunarity;
             }
 
-            if(parameters.useModifiers)
-                sampleValue = sampleValue + parameters.upwardsOffset - parameters.edgePushdown * Mathf.Pow(distanceFromCenter, parameters.coefficient);
+            //Later used to shift Values back to 0-1
+            if (sampleValue < minValue) minValue = sampleValue;
+            else if (sampleValue > maxValue) maxValue = sampleValue;
 
-            ////Later used to shift Values back to 0-1
-            //if (sampleValue < minValue) minValue = sampleValue;
-            //else if (sampleValue > maxValue) maxValue = sampleValue;
-
-            //perlinValues[i] = sampleValue;
+            perlinValues[i] = sampleValue;
         }
 
+
+        Debug.Log("MinValue is "+ minValue);
+        Debug.Log("MaxValue is " + maxValue);
         //Stretching Values back between 0 & 1
-        //for (int i = 0; i < perlinValues.Length; i++)
-        //{
-        //    perlinValues[i] = Mathf.InverseLerp(minValue, maxValue, perlinValues[i]);
-        //}
+        for (int i = 0; i < perlinValues.Length; i++)
+        {
+            perlinValues[i] = Mathf.InverseLerp(minValue, maxValue, perlinValues[i]);
+        }
 
         return perlinValues;
     }

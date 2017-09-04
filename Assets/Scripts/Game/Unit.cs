@@ -3,163 +3,114 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum UnitType
-{
-    Infantry,
-    Ranged,
-    Flying,
-    Sea,
-}
-
-public enum UnitPhase
-{
-    MovePhase,
-    ActionPhase,
-    EndPhase,
-}
-
 public class Unit : MonoBehaviour
 {
-    public UnitType unitType;
-    private UnitPhase turnPhase;
+    public enum TurnPhase {MovePhase, ActionPhase, EndPhase }
+
+    public int maxHealth;
     public int movementRange;
-    public int belongsToSide;
+    public List<TerrainType> traversableTerrainTypes;
+    public int attackRange;
+    public int[] attackDamageRange;
+    public TurnPhase currentPhase;
+
+    private int currentHealth;
+    private int belongsToSide;
+
+    private List<Tile> currentMovementRange;
+    private List<Tile> attackableTiles;
     private Point coordinates;
 
-    private List<Tile> currentMovementArea;
+    private SpriteRenderer sprite;
+    private GameObject selectionMarker;
 
-    void Awake()
+    #region MonoBehaviour Overrides
+    private void Start()
     {
-        currentMovementArea = new List<Tile>();
-    }
-
-    public void OnMouseDown()
-    {
-        if (!IsSelected() && BelongsToCurrentPlayer()  &&GameManager.Instance.playerCanInteract)
-        {
-            UnitManager.Instance.OnUnitUnselected();
-            UnitManager.Instance.SetSelectedUnit(this);
-            if (turnPhase == UnitPhase.MovePhase)
-            {
-                HighlightMovementArea(true);
-            }
-        }
-    }
-
-    public void OnNewTurn()
-    {
-        turnPhase = UnitPhase.MovePhase;
-    }
-
-    public bool IsSelected()
-    {
-        return this == UnitManager.Instance.GetCurrentSelectedUnit();
-    }
-
-    public bool BelongsToCurrentPlayer()
-    {
-        if (GameManager.Instance.turnOfSide == belongsToSide)
-        {
-            return true;
-        }
-        else return false;
-    }
-
-    public void SetUnitSide(int faction, Color sideColor)
-    {
-        belongsToSide = faction;
         
-        GetComponent<SpriteRenderer>().color = sideColor;
+    }
+    private void Awake()
+    {
+        currentPhase = TurnPhase.MovePhase;
+    }
+    #endregion
+    #region Action-related Methods
+
+    public void HighlightAttackRange(bool showHighlight)
+    {
+        //HighlightTiles
     }
 
-    public void SetUnitPosition(Point p)
+    public bool CanAttackTile(Tile tileWithEnemy)
     {
-        SetUnitPosition(p.x, p.y);
-        GameManager.Instance.GetTile(p).SetUnitOnTile(this);
+        return attackableTiles.Contains(tileWithEnemy);
+    }
+    public void Attack(Unit target)
+    {
+        target.GetDamage(UnityEngine.Random.Range(this.attackDamageRange[0], this.attackDamageRange[1]));
     }
 
-    public void SetUnitPosition(int x, int y)
+    public void GetDamage(int damageValue)
     {
-        coordinates = new Point(x, y);
-        gameObject.transform.localPosition = new Vector3(x, y,-0.2f);
-    }
-
-    public void HighlightMovementArea(bool setHighlight)
-    {
-        if(setHighlight) currentMovementArea = GetMovementArea();
-
-        foreach(Tile tile in currentMovementArea)
+        currentHealth = currentHealth - damageValue;
+        if (currentHealth <= 0)
         {
-            tile.Highlight(setHighlight);
+            OnDeath();
         }
+        
     }
 
-    public List<Tile> GetMovementArea()
+    private void OnDeath()
     {
-        List<Tile> movementArea = new List<Tile>();
+        UnitManager.Instance.GetUnitListOfSide(belongsToSide).Remove(this);
+        GameManager.Instance.GetTile(coordinates).OnUnitExit();
+        Destroy(this.gameObject);
+    }
+    #endregion
+
+    #region Movement-related Methods
+
+    public bool CanMoveToTile(Tile tile)
+    {
+        return currentMovementRange.Contains(tile) && CanTraversePoint(tile.coordinates);
+    }
+
+    public void StartMovement(Tile targetTile)
+    {
+        List<Point> path = AStarPathSearch.FindPath(coordinates, targetTile.coordinates,CanTraversePoint);
+        StartCoroutine(LerpThroughPath(path));
+    }
+
+    public bool CanTraversePoint(Point p)
+    {
+        return traversableTerrainTypes.Contains((LevelGenerator.Instance.TerrainAtPoint(p)));
+    }
+    
+
+    private List<Tile> GetTileRange(int range)
+    {
+        List<Tile> area = new List<Tile>();
         Point currentPoint = coordinates;
-        for(int xOffset = -movementRange; xOffset <= movementRange; xOffset++)
+        for (int xOffset = -range; xOffset <= range; xOffset++)
         {
-            for(int yOffset = -movementRange; yOffset <= movementRange; yOffset++)
+            for (int yOffset = -range; yOffset <= range; yOffset++)
             {
                 if (xOffset == 0 && yOffset == 0) continue;
 
                 Point offset = currentPoint + new Point(xOffset, yOffset);
-                if (Utility.ManhattanDistance(currentPoint, offset) <= movementRange &&
+                if (Utility.ManhattanDistance(currentPoint, offset) <= range &&
                     Utility.IsInsideGrid(offset) &&
-                    GameManager.Instance.GetTile(offset).IsTraversableByUnit(unitType))
+                    CanTraversePoint(offset))
                 {
-                    movementArea.Add(GameManager.Instance.GetTile(offset));
+                    area.Add(GameManager.Instance.GetTile(offset));
                 }
             }
         }
-        return movementArea;
+        return area;
     }
-
-    public void MoveToTile(Tile tile)
-    {
-        if(turnPhase == UnitPhase.MovePhase)
-        {
-            HighlightMovementArea(false);
-            GameManager.Instance.SetGameInteractable(false);
-            GameManager.Instance.GetTile(coordinates).OnUnitExit();
-
-            List<Point> path = AStarPathSearch.FindPath(coordinates, tile.coordinates, UnitCanEnterTile);
-            path.Reverse();
-            coordinates = tile.coordinates;
-            StartCoroutine(LerpThroughPath(path));
-
-        }
-    }
-
-    public bool UnitCanEnterTile(Point p)
-    {
-        Tile tileToCheck = GameManager.Instance.GetTile(p);
-        if (tileToCheck.IsTraversableByUnit(unitType))
-        {
-            return true;
-        }
-        else { return false; }
-    }
-
-    public bool TileIsInMovementArea(Tile t)
-    {
-        if(currentMovementArea.Count <= 0)
-        {
-            GetMovementArea();
-        }
-        return currentMovementArea.Contains(t);
-    }
-
-    public void OnUnitMoveComplete()
-    {
-        turnPhase = UnitPhase.ActionPhase;
-        GameManager.Instance.GetTile(coordinates).SetUnitOnTile(this);
-    }
-
     IEnumerator LerpThroughPath(List<Point> path)
     {
-        foreach(Point p in path)
+        foreach (Point p in path)
         {
             float lerpProgress = 0;
             float zOffset = transform.localPosition.z;
@@ -174,7 +125,45 @@ public class Unit : MonoBehaviour
             } while (lerpProgress <= 1);
         }
         OnUnitMoveComplete();
-        GameManager.Instance.SetGameInteractable(true);
+    }
+    public void OnUnitMoveComplete()
+    {
+        //Show Action Menu
+    }
+    #endregion 
+
+    public void OnNewTurn()
+    {
+        //Reset stuff;
+        currentPhase = TurnPhase.MovePhase;
+        currentMovementRange = GetTileRange(movementRange);
+    }
+    public bool IsSelected() { return true; }
+
+    public void OnActionSelected()
+    {
+        currentPhase = TurnPhase.ActionPhase;
     }
 
+    public void OnEndTurn()
+    {
+        currentPhase = TurnPhase.EndPhase;
+    }
+
+    public bool BelongsToCurrentSide()
+    {
+        return GameManager.Instance.turnOfSide == this.belongsToSide;
+    }
+
+    public void SetUnitSide(int side, Color color)
+    {
+        belongsToSide = side;
+        sprite.material.color = color;
+    }
+
+    public void SetUnitPosition(Point p)
+    {
+        
+        GameManager.Instance.GetTile(p).SetUnitOnTile(this);
+    }
 }

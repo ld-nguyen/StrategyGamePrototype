@@ -1,18 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [System.Serializable]
 public struct RoadGeneratorParameters
 {
     public int numberOfRoads;
     public int minimumDistance;
-    public List<TerrainType> startAndEndTerrain;
+    public List<TerrainType> startTerrain;
+    public List<TerrainType> endTerrain;
     public List<TerrainType> roadTerrains;
     public TerrainType desiredRoadTerrain;
+    public RoadGenerator.ExternalCostFactorMethod externalCostFactorMethod;
 }
 
 public class RoadGenerator {
+    public enum ExternalCostFactorMethod{ DownwardsTerrain, EvenTerrain}
+
     private static TerrainType[] grid;
     private static RoadGeneratorParameters parameters;
 
@@ -22,29 +27,29 @@ public class RoadGenerator {
         parameters = param;
         for(int road = 0; road < param.numberOfRoads; road++)
         {
-            Point start;
-            Point end;
-
+            Point startPoint;
+            Point endPoint;
             do
             {
                 //Select Start
                 do
                 {
-                    start = Point.GetRandomPoint();
-                } while (!CheckPoints(start));
+                    startPoint = Point.GetRandomPoint();
+                } while (!CheckStart(startPoint));
                 //Select End
                 do
                 {
-                    end = Point.GetRandomPoint();
-                } while (!CheckPoints(end));
-            } while (Utility.ManhattanDistance(start, end) < param.minimumDistance);
+                    endPoint = Point.GetRandomPoint();
+                } while (!CheckEnd(endPoint));
+            } while (Utility.ManhattanDistance(startPoint, endPoint) < param.minimumDistance);
 
-            Debug.Log("Start:" + start.ToString() + " End: " + end.ToString());
+            Debug.Log("Start:" + startPoint.ToString() + " End: " + endPoint.ToString());
 
             //Find Path with A*
+            AStarPathSearch.ExternalCostFactor CostFactor = GetExternalCostMethod(param.externalCostFactorMethod);
             List<Point> path = new List<Point>();
-            path = AStarPathSearch.FindPath(start, end, IsTraversableTerrain);
-            //Draw Path on grid
+            path = AStarPathSearch.FindPath(startPoint, endPoint, IsTraversableTerrain, CostFactor);
+            //Set desired terraintype of path on grid
             if (path.Count > 0)
             {
                 Debug.Log("Path found!");
@@ -53,14 +58,23 @@ public class RoadGenerator {
                     grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x] = param.desiredRoadTerrain;
                 }
             }
-            else { Debug.Log("Path not found!"); }
         }
         return grid;
     }
 
-    public static bool CheckPoints(Point p)
+    public static bool CheckStart(Point p)
     {
-        if (!parameters.startAndEndTerrain.Contains(GetTerrainAtPoint(p))) return false;
+        return CheckPoints(p, parameters.startTerrain);
+    }
+
+    public static bool CheckEnd(Point p)
+    {
+        return CheckPoints(p, parameters.endTerrain);
+    }
+
+    public static bool CheckPoints(Point p,List<TerrainType> allowedTerrains)
+    {
+        if (!allowedTerrains.Contains(GetTerrainAtPoint(p))) return false;
         else
         {
             return Utility.CheckNeighbours(p, 1, IsDifferentTerrain);
@@ -95,6 +109,51 @@ public class RoadGenerator {
                 return true;
             }
             else return false;
+        }
+    }
+
+    private static AStarPathSearch.ExternalCostFactor GetExternalCostMethod(ExternalCostFactorMethod method)
+    {
+        switch (method)
+        {
+            case ExternalCostFactorMethod.DownwardsTerrain:
+                return DownwardsSlopeCost;
+            case ExternalCostFactorMethod.EvenTerrain:
+                return EvenSlopeCost;
+            default:
+                return null;
+        }
+    }
+
+    //Gives a penalty to the A* cost if end is higher in elvation than start
+    private static int DownwardsSlopeCost(Point start,Point end)
+    {
+        //Assigning penalty values to negative elevation differences. If the end point i.e. 0.6f is higher than the start point 0.2 then the difference will always be negative i.e 0.2 - 0.6 = -0.4
+        //Multiplying by 100 to give this cost offset a meaningful impact in the A* heuristics
+        float difference = GetElevationDifference(start, end) < 0 ? GetElevationDifference(start, end) * 100 : 0;
+        return Mathf.RoundToInt(difference);
+    }
+
+    //Gives Higher cost penalty for A* to differences in Elevation
+    private static int EvenSlopeCost(Point start, Point end)
+    {
+        //Safeguard against division by 0
+        float difference = GetElevationDifference(start, end) * 100;
+        //Using the formula x² since the penalty at high elvation differences should be high and positive
+        return Mathf.RoundToInt(Mathf.Pow(difference,2));
+    }
+
+    private static float GetElevationDifference(Point start, Point end)
+    {
+        if (LevelGenerator.Instance)
+        {
+            float[] elevationMap = LevelGenerator.Instance.elevationMap;
+            return Utility.GetGridValue(elevationMap, start) - Utility.GetGridValue(elevationMap, end);
+        }
+        else
+        {
+            Debug.LogWarning("RoadGenerator: LevelGenerator.Instance does not exist!");
+            return 0f;
         }
     }
 }

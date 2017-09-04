@@ -18,9 +18,8 @@ public class GameManager : MonoBehaviour
     public Color highlightTileColor;
     public int sides;
     public int unitCountPerSide;
-    [Header("Pickups stuff")]
 
-    public PoissonDiscParameters pickupsParam;
+    private 
 
 
     void Awake()
@@ -37,21 +36,11 @@ public class GameManager : MonoBehaviour
     public void SetupGame()
     {
         levelGen.StartLevelGeneration();
-        UnitManager.Instance.PlaceUnits();
-        UIManager.Instance.OnNextTurn();
-        SetGameInteractable(true);
     }
 
     public void SetGameMap(Tile[] map)
     {
         gameMap = map;
-    }
-
-    public void NextTurn()
-    {
-        UnitManager.Instance.ResetUnits(turnOfSide);
-        turnOfSide = (turnOfSide + 1) % sides;
-        UIManager.Instance.OnNextTurn();
     }
 
     public Tile GetTile(Point p)
@@ -63,6 +52,4 @@ public class GameManager : MonoBehaviour
     {
         return gameMap[y * levelGen.mapDimensions.width + x];
     }
-
-    public void SetGameInteractable(bool canInteract) { playerCanInteract = canInteract; }
-}
+  }

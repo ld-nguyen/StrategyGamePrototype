@@ -15,9 +15,6 @@ public class UnitManager: MonoBehaviour {
         Instance = this;
     }
 
-
-    private Unit selectedUnit;
-
     public void PlaceUnits()
     {
         unitListForSide = new List<Unit>[GameManager.Instance.sides];
@@ -46,26 +43,11 @@ public class UnitManager: MonoBehaviour {
                 do
                 {
                     spawnpoint = Point.GetRandomOffset(centerPoint,4);
-                }while(!spawnpoint.IsInsideGrid() || !GameManager.Instance.GetTile(spawnpoint).IsTraversableByUnit(newUnit.unitType));
+                }while(!spawnpoint.IsInsideGrid() || !newUnit.CanTraversePoint(spawnpoint));
 
                 newUnit.SetUnitPosition(spawnpoint);
             }
         }
-    }
-
-    public void SetSelectedUnit(Unit unit)
-    {
-        selectedUnit = unit;
-    }
-
-    public Unit GetCurrentSelectedUnit()
-    {
-        return selectedUnit;
-    }
-
-    public void OnUnitUnselected()
-    {
-        if(selectedUnit) selectedUnit.HighlightMovementArea(false);
     }
 
     public void ResetUnits(int side)
@@ -75,6 +57,11 @@ public class UnitManager: MonoBehaviour {
         {
             u.OnNewTurn();
         }
+    }
+
+    public List<Unit> GetUnitListOfSide(int side)
+    {
+        return unitListForSide[side];
     }
 
     public Color GetCurrentSideColor()

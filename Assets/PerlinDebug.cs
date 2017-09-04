@@ -25,7 +25,6 @@ public class PerlinDebug : MonoBehaviour {
         {
             if(i <= 0)
             {
-                PerlinMapParameters newParam = new PerlinMapParameters(param.baseFrequency, param.lacunarity, param.persistence);
                 float[] values = PerlinMapGenerator.GeneratePerlinMap(dim.width, dim.height, param);
                 ShowPerlinOnTexture(values);
             }

@@ -39,9 +39,9 @@ GameObject:
   - component: {fileID: 212615948100451512}
   - component: {fileID: 114820110732195552}
   - component: {fileID: 61203165201360414}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Mountain
-  m_TagString: Untagged
+  m_TagString: Selectable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -163,7 +163,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cost: 10
-  traversableByUnitType: 
   showDebugCoords: 0
 --- !u!212 &212615948100451512
 SpriteRenderer:

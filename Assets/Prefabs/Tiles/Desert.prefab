@@ -22,9 +22,9 @@ GameObject:
   - component: {fileID: 212615948100451512}
   - component: {fileID: 114938680264750952}
   - component: {fileID: 61860884305230776}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Desert
-  m_TagString: Untagged
+  m_TagString: Selectable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -149,7 +149,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cost: 2
-  traversableByUnitType: 0000000001000000
   showDebugCoords: 0
 --- !u!212 &212615948100451512
 SpriteRenderer:

@@ -11,10 +11,9 @@ public class Tile : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
     private bool isHighlighted;
+    private Unit unitOnTile;
 
     public int cost;
-    public List<UnitType> traversableByUnitType;
-    public Unit unitOnTile { get; private set; }
     public bool showDebugCoords;
 
     public void SetCoords(int x, int y)
@@ -27,10 +26,16 @@ public class Tile : MonoBehaviour
             debugCoords.gameObject.SetActive(false);
     }
 
-    public void Setup(int xCoord, int yCoord, Vector3 unityPos)
+    public void Setup(int xCoord, int yCoord, Vector3 unityPos, float colorOffset = 0)
     {
         SetCoords(xCoord, yCoord);
         gameObject.transform.localPosition = unityPos;
+        if(colorOffset != 0)
+        {
+            Color newColor = new Color(originalColor.r + colorOffset,originalColor.g + colorOffset, originalColor.b + colorOffset);
+            SetColor(newColor);
+            originalColor = newColor;
+        }
     }
 
     #region MonoBehavior Overrides
@@ -43,53 +48,58 @@ public class Tile : MonoBehaviour
 
     void OnMouseEnter()
     {
-        spriteRenderer.material.color = GameManager.Instance.mouseOverTileColor;
+        SetColor(GameManager.Instance.mouseOverTileColor);
     }
 
     void OnMouseDown()
     {
         if (GameManager.Instance.playerCanInteract)
         {
-            spriteRenderer.material.color = Color.blue;
-            Unit currentSelectedUnit = UnitManager.Instance.GetCurrentSelectedUnit();
-            if (currentSelectedUnit && currentSelectedUnit.TileIsInMovementArea(this))
-            {
-                currentSelectedUnit.MoveToTile(this);
-            }
+            SetColor(Color.blue);
+            SelectionManager.Instance.OnTileClicked(this);
         }
     }
 
     void OnMouseUp()
     {
-        if (isHighlighted) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
-        else spriteRenderer.material.color = originalColor;
+        if (isHighlighted) SetColor(GameManager.Instance.highlightTileColor);
+        else SetColor(originalColor);
     }
 
     void OnMouseExit()
     {
-        if (isHighlighted) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
-        else spriteRenderer.material.color = originalColor;
+        if (isHighlighted) SetColor(GameManager.Instance.highlightTileColor);
+        else SetColor(originalColor);
+    }
+
+    private void SetColor(Color newColor)
+    {
+        spriteRenderer.material.color = newColor;
     }
     #endregion
-    public bool IsTraversableByUnit(UnitType unit)
+
+    public bool IsOccupiedByUnit()
     {
-        return traversableByUnitType.Contains(unit) && !unitOnTile;
+        return unitOnTile != null;
+    }
+
+    public void SetUnitOnTile(Unit u) { unitOnTile = u; }
+    public Unit GetUnitOnTile() { if (unitOnTile) return unitOnTile; else return null; }
+
+    public void OnUnitExit()
+    {
+        SetUnitOnTile(null);
+    }
+
+    public void OnUnitEnter(Unit u)
+    {
+        SetUnitOnTile(u);
     }
 
     public void Highlight(bool shouldHighlight)
     {
         isHighlighted = shouldHighlight;
-        if (shouldHighlight) spriteRenderer.material.color = GameManager.Instance.highlightTileColor;
-        else spriteRenderer.material.color = originalColor;
-    }
-    
-    public void SetUnitOnTile(Unit unit)
-    {
-        unitOnTile = unit;
-    }
-
-    public void OnUnitExit()
-    {
-        SetUnitOnTile(null);
+        if (shouldHighlight) SetColor(GameManager.Instance.highlightTileColor);
+        else SetColor(originalColor);
     }
 }
