@@ -5,9 +5,10 @@ using UnityEngine;
 public class UnitManager: MonoBehaviour {
 
     public static UnitManager Instance { get; private set; }
+    public List<Unit> unitCompositionPerSide;
 
     private List<Unit>[] unitListForSide;
-    public Color[] sideColors { get; private set; }
+    public Color[] sideColors;
 
 
     void Awake()
@@ -17,13 +18,11 @@ public class UnitManager: MonoBehaviour {
 
     public void PlaceUnits()
     {
-        unitListForSide = new List<Unit>[GameManager.Instance.sides];
-        sideColors = new Color[GameManager.Instance.sides];
+        unitListForSide = new List<Unit>[GameManager.SIDES];
 
-        for (int side = 0; side < GameManager.Instance.sides; side++)
+        for (int side = 0; side < GameManager.SIDES; side++)
         {
             unitListForSide[side] = new List<Unit>();
-            sideColors[side] = new Color(Random.value, Random.value, Random.value);
 
             Point centerPoint; //Centerpoint to spawn units around
             do
@@ -31,10 +30,10 @@ public class UnitManager: MonoBehaviour {
                 centerPoint = Point.GetRandomPoint();
             } while (LevelGenerator.Instance.TerrainAtPoint(centerPoint) != TerrainType.Grass);
 
-            for (int unit = 0; unit < GameManager.Instance.unitCountPerSide; unit++)
+            foreach(Unit unitPrefab in unitCompositionPerSide)
             {
                 //TODO: Selecting different unit types
-                Unit newUnit = Instantiate(Resources.Load("Unit", typeof(Unit)),LevelGenerator.Instance.parentGO.transform) as Unit;
+                Unit newUnit = Instantiate(unitPrefab,LevelGenerator.Instance.parentGO.transform) as Unit;
                 //Assign unit to side
                 unitListForSide[side].Add(newUnit);
                 newUnit.SetUnitSide(side, sideColors[side]);
@@ -56,6 +55,14 @@ public class UnitManager: MonoBehaviour {
         foreach(Unit u in unitList)
         {
             u.OnNewTurn();
+        }
+    }
+
+    public void ResetAllUnits()
+    {
+        for (int i = 0; i < unitListForSide.Length; i++)
+        {
+            ResetUnits(i);
         }
     }
 

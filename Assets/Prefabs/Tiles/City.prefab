@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cost: 1
-  showDebugCoords: 0
+  showDebugCoords: 1
 --- !u!212 &212615948100451512
 SpriteRenderer:
   m_ObjectHideFlags: 1

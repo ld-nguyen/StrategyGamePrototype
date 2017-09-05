@@ -9,17 +9,16 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     private LevelGenerator levelGen;
     private Tile[] gameMap;
+    public Camera mainCamera;
     //Variables
-    public bool playerCanInteract { get; private set; }
+    public bool playerCanInteract;
     public int turnOfSide;
     //Parameters for Unity
     [Header("Game Parameters")]
     public Color mouseOverTileColor;
     public Color highlightTileColor;
-    public int sides;
-    public int unitCountPerSide;
-
-    private 
+    public const int SIDES = 2;
+    
 
 
     void Awake()
@@ -36,6 +35,27 @@ public class GameManager : MonoBehaviour
     public void SetupGame()
     {
         levelGen.StartLevelGeneration();
+        UnitManager.Instance.PlaceUnits();
+        UnitManager.Instance.ResetAllUnits();
+        playerCanInteract = true;
+        UIManager.Instance.UpdateTurnLabel();
+    }
+
+    public void OnTurnEnded()
+    {
+        if (playerCanInteract)
+        {
+            UnitManager.Instance.ResetUnits(turnOfSide);
+            SelectionManager.Instance.ClearSelectedUnit();
+            turnOfSide = (turnOfSide + 1) % SIDES;
+            UIManager.Instance.UpdateTurnLabel();
+        }
+    }
+
+    public void CheckWinCondition()
+    {
+        List<Unit> enemySide = UnitManager.Instance.GetUnitListOfSide((turnOfSide + 1) % 2);
+        if()
     }
 
     public void SetGameMap(Tile[] map)

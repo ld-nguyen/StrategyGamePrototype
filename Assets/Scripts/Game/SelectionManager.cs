@@ -7,42 +7,26 @@ public class SelectionManager : MonoBehaviour
     public static SelectionManager Instance { get; private set; }
 
     public Unit selectedUnit;
-    public Tile targetTile;
 
     private void Awake()
     {
         Instance = this;
     }
 
-    public void OnUnitClicked(Unit clickedUnit)
-    {
-        if (selectedUnit)
-        {
-
-        }
-        else
-        {
-            selectedUnit = clickedUnit;
-        }
-    }
-
-    public void OnMouseOver()
-    {
-        
-    }
-
     public void OnTileClicked(Tile clickedTile)
     {
         if (clickedTile.IsOccupiedByUnit())
         {
+            Unit unitOnTile = clickedTile.GetUnitOnTile();
             if (selectedUnit)
             {
                 if (selectedUnit.currentPhase == Unit.TurnPhase.ActionPhase)
                 {
-                    if (!clickedTile.GetUnitOnTile().BelongsToCurrentSide() 
-                        && selectedUnit.CanAttackTile(clickedTile))
+                    if (!unitOnTile.BelongsToCurrentSide() 
+                        && selectedUnit.CanAttackEnemy(unitOnTile))
                     {
-                        selectedUnit.Attack(clickedTile.GetUnitOnTile());
+                        selectedUnit.HighlightAttackRange(false);
+                        selectedUnit.Attack(unitOnTile);
                         selectedUnit.currentPhase = Unit.TurnPhase.EndPhase;
                         selectedUnit = null;
                     }
@@ -50,7 +34,11 @@ public class SelectionManager : MonoBehaviour
             }
             else
             {
-                OnUnitClicked(clickedTile.GetUnitOnTile());
+                if (unitOnTile.BelongsToCurrentSide() && unitOnTile.currentPhase == Unit.TurnPhase.MovePhase)
+                {
+                    selectedUnit = unitOnTile;
+                    selectedUnit.ShowMovementArea();
+                }
             }
         }
         else if (selectedUnit && selectedUnit.currentPhase == Unit.TurnPhase.MovePhase)
@@ -61,19 +49,22 @@ public class SelectionManager : MonoBehaviour
             }
         }
     }
+
+    public void OnAttackActionSelected()
+    {
+        UIManager.Instance.DisplayActionMenu(false);
+        selectedUnit.HighlightAttackRange(true);
+    }
+
+    public void OnWaitActionSelected()
+    {
+        UIManager.Instance.DisplayActionMenu(false);
+        selectedUnit.OnEndTurn();
+        ClearSelectedUnit();
+    }
+
     public void ClearSelectedUnit()
     {
         selectedUnit = null;
-    }
-
-    public void ClearSelectedTile()
-    {
-        targetTile = null;
-    }
-
-    public void Clear()
-    {
-        ClearSelectedTile();
-        ClearSelectedUnit();
     }
 }

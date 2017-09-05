@@ -19,37 +19,52 @@ public class Unit : MonoBehaviour
 
     private List<Tile> currentMovementRange;
     private List<Tile> attackableTiles;
+    private List<Unit> attackableUnits;
     private Point coordinates;
 
     private SpriteRenderer sprite;
     private GameObject selectionMarker;
 
     #region MonoBehaviour Overrides
-    private void Start()
-    {
-        
-    }
     private void Awake()
     {
         currentPhase = TurnPhase.MovePhase;
+        sprite = GetComponent<SpriteRenderer>();
+        attackableTiles = new List<Tile>();
+        currentMovementRange = new List<Tile>();
+        attackableUnits = new List<Unit>();
     }
     #endregion
     #region Action-related Methods
+    public bool HasAttackableUnits()
+    {
+        return attackableUnits.Count > 0;
+    }
+
+    public void GetAttackableUnits()
+    {
+        attackableUnits.Clear();
+        foreach(Unit u in UnitManager.Instance.GetUnitListOfSide((belongsToSide + 1) % 2))
+        {
+            if (Utility.ManhattanDistance(this.coordinates, u.coordinates) <= attackRange)
+            {
+                attackableUnits.Add(u);
+            }
+        }
+    }
 
     public void HighlightAttackRange(bool showHighlight)
     {
-        //HighlightTiles
+        AreaHighlight(showHighlight, attackableTiles);
     }
-
-    public bool CanAttackTile(Tile tileWithEnemy)
+    public bool CanAttackEnemy(Unit enemy)
     {
-        return attackableTiles.Contains(tileWithEnemy);
+        return attackableUnits.Contains(enemy);
     }
     public void Attack(Unit target)
     {
         target.GetDamage(UnityEngine.Random.Range(this.attackDamageRange[0], this.attackDamageRange[1]));
     }
-
     public void GetDamage(int damageValue)
     {
         currentHealth = currentHealth - damageValue;
@@ -59,12 +74,12 @@ public class Unit : MonoBehaviour
         }
         
     }
-
     private void OnDeath()
     {
         UnitManager.Instance.GetUnitListOfSide(belongsToSide).Remove(this);
         GameManager.Instance.GetTile(coordinates).OnUnitExit();
         Destroy(this.gameObject);
+        GameManager.Instance.CheckWinCondition();
     }
     #endregion
 
@@ -72,12 +87,24 @@ public class Unit : MonoBehaviour
 
     public bool CanMoveToTile(Tile tile)
     {
-        return currentMovementRange.Contains(tile) && CanTraversePoint(tile.coordinates);
+        return !tile.IsOccupiedByUnit() && currentMovementRange.Contains(tile) && CanTraversePoint(tile.coordinates);
+    }
+
+    public void ShowMovementArea()
+    {
+        AreaHighlight(true, currentMovementRange);
     }
 
     public void StartMovement(Tile targetTile)
     {
+        AreaHighlight(false,currentMovementRange);
+        GameManager.Instance.GetTile(coordinates).OnUnitExit();
+        targetTile.OnUnitEnter(this);
+        GameManager.Instance.playerCanInteract = false;
+
         List<Point> path = AStarPathSearch.FindPath(coordinates, targetTile.coordinates,CanTraversePoint);
+        path.Reverse();
+        coordinates = targetTile.coordinates;
         StartCoroutine(LerpThroughPath(path));
     }
 
@@ -86,6 +113,13 @@ public class Unit : MonoBehaviour
         return traversableTerrainTypes.Contains((LevelGenerator.Instance.TerrainAtPoint(p)));
     }
     
+    public void AreaHighlight(bool shouldShow, List<Tile> area)
+    {
+        foreach (Tile tile in area)
+        {
+            tile.Highlight(shouldShow);
+        }
+    }
 
     private List<Tile> GetTileRange(int range)
     {
@@ -128,7 +162,12 @@ public class Unit : MonoBehaviour
     }
     public void OnUnitMoveComplete()
     {
+        currentPhase = TurnPhase.ActionPhase;
+        //get attackable range
+        attackableTiles = GetTileRange(attackRange);
+        GetAttackableUnits();
         //Show Action Menu
+        UIManager.Instance.OnShowActionMenu(coordinates.GetVector3());
     }
     #endregion 
 
@@ -158,12 +197,14 @@ public class Unit : MonoBehaviour
     public void SetUnitSide(int side, Color color)
     {
         belongsToSide = side;
-        sprite.material.color = color;
+        sprite.color = color;
     }
 
     public void SetUnitPosition(Point p)
     {
-        
+        coordinates = p;
+        transform.localPosition = p.GetVector3();
         GameManager.Instance.GetTile(p).SetUnitOnTile(this);
     }
+
 }

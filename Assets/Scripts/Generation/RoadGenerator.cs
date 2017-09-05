@@ -129,16 +129,15 @@ public class RoadGenerator {
     private static int DownwardsSlopeCost(Point start,Point end)
     {
         //Assigning penalty values to negative elevation differences. If the end point i.e. 0.6f is higher than the start point 0.2 then the difference will always be negative i.e 0.2 - 0.6 = -0.4
-        //Multiplying by 100 to give this cost offset a meaningful impact in the A* heuristics
-        float difference = GetElevationDifference(start, end) < 0 ? GetElevationDifference(start, end) * 100 : 0;
+        //Multiplying by -1000 to give this cost offset a meaningful impact in the A* heuristics
+        float difference = GetElevationDifference(start, end) < 0 ? GetElevationDifference(start, end) * -1000 : 0;
         return Mathf.RoundToInt(difference);
     }
 
     //Gives Higher cost penalty for A* to differences in Elevation
     private static int EvenSlopeCost(Point start, Point end)
     {
-        //Safeguard against division by 0
-        float difference = GetElevationDifference(start, end) * 100;
+        float difference = GetElevationDifference(start, end) * 1000;
         //Using the formula x² since the penalty at high elvation differences should be high and positive
         return Mathf.RoundToInt(Mathf.Pow(difference,2));
     }
