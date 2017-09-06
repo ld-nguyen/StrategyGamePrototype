@@ -61,7 +61,7 @@ public class Utility : MonoBehaviour {
 
 }
 
-public struct Point
+public class Point
 {
     public int x;
     public int y;

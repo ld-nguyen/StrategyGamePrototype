@@ -115,13 +115,12 @@ public class AStarPathSearch
                     }
 
                 float newCost = currentNode.g + Utility.ManhattanDistance(currentNode.coords,neighbour.coords);
-                float costOffset = 0;
                 if (externalCostOffset != null)
                 {
-                    costOffset += externalCostOffset(currentNode.coords,neighbour.coords);
+                    newCost += externalCostOffset(currentNode.coords,neighbour.coords);
                 }
 
-                    if(newCost + costOffset < neighbour.g || !openList.Contains(neighbour))
+                    if(newCost < neighbour.g || !openList.Contains(neighbour))
                     {
                         neighbour.g = newCost;
                         neighbour.h = Utility.ManhattanDistance(neighbour.coords, goal);

@@ -42,8 +42,8 @@ public class PerlinMapGenerator
 
         for (int i = 0; i < perlinValues.Length; i++)
         {
-            int x = i % width;
-            int y = Mathf.FloorToInt(i / width);
+            int x = i / width;
+            int y = i % width;
 
             float sampleValue = 0;
             float frequency = parameters.baseFrequency;

@@ -207,8 +207,8 @@ public class LevelGenerator : MonoBehaviour
         Tile[] gameMap = new Tile[terrainMap.Length];
         for (int i = 0; i < terrainMap.Length; i++)
         {
-            int x = (i % mapDimensions.width);
-            int y = Mathf.FloorToInt(i / mapDimensions.width);
+            int x = i / mapDimensions.width;
+            int y = i % mapDimensions.width;
             spawnPos = new Vector3(x, y, 0);
 
             GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
