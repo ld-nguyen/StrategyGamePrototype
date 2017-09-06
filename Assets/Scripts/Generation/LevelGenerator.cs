@@ -71,6 +71,8 @@ public class LevelGenerator : MonoBehaviour
     public GameObject parentGO;
     public bool useGraphicAsBase;
     public Texture2D baseGraphic;
+    [Range(0f, 1f)]
+    public float perlinWeightOnBaseGrafic;
     [Header("Tiles")]
     public Biome[] biomePrefabs;
     public int tileSize;
@@ -136,10 +138,12 @@ public class LevelGenerator : MonoBehaviour
     {
         if (useGraphicAsBase)
         {
-            elevationMap = ProcessBaseGraphicAsElevationMap();
-            moistureMap = ProcessBaseGraphicAsElevationMap();
-            elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings, PerlinMapGenerator.OutputRange.MinusOneToOne);
-            moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings,PerlinMapGenerator.OutputRange.MinusOneToOne);
+            elevationMap = ProcessBaseGraphicIntoArray();
+            elevationMap = Utility.AddSameLengthArrays(elevationMap, PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings, false), perlinWeightOnBaseGrafic);
+            elevationMap = Utility.ClampPerlinValues(elevationMap);
+            moistureMap = ProcessBaseGraphicIntoArray();
+            moistureMap = Utility.AddSameLengthArrays(moistureMap, PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings, false), perlinWeightOnBaseGrafic);
+            moistureMap = Utility.ClampPerlinValues(moistureMap);
         }
         else
         {
@@ -148,11 +152,11 @@ public class LevelGenerator : MonoBehaviour
         }
         terrainMap = CombinePerlinMaps();
 
-        terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
-        terrainMap = SeedGrowth.PopulateGrid(terrainMap, citiesParam, mapDimensions);
+        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, citiesParam, mapDimensions);
         
-        terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
-        terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
+        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
+        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugTextureForPerlin) ShowPerlinOnTexture();
         InitializePerlinMap();
@@ -166,7 +170,7 @@ public class LevelGenerator : MonoBehaviour
             terrainMap[i] = TerrainType.Grass;
         }
 
-        List<Point> forestPoints = PoissonDisc.Distribute(terrainMap, poissonParam);
+        List<Point> forestPoints = PoissonDisc.Distribute(terrainMap, poissonParam, forestParam.allowedBiomes   );
         foreach (Point p in forestPoints)
         {
             terrainMap[p.y * mapDimensions.width + p.x] = TerrainType.Forest;
@@ -207,13 +211,13 @@ public class LevelGenerator : MonoBehaviour
         Tile[] gameMap = new Tile[terrainMap.Length];
         for (int i = 0; i < terrainMap.Length; i++)
         {
-            int x = i / mapDimensions.width;
-            int y = i % mapDimensions.width;
+            int x = i % mapDimensions.width;
+            int y = i / mapDimensions.width;
             spawnPos = new Vector3(x, y, 0);
 
             GameObject tile = Instantiate(prefabDictionary[terrainMap[i]], parentGO.transform);
             Tile newTile = tile.GetComponent<Tile>();
-            float colorOffset = GetColorOffset(Utility.GetGridValue(elevationMap,new Point(x,y)),terrainMap[i]);
+            float colorOffset = GetColorOffset(elevationMap[i],terrainMap[i]);
             newTile.Setup(x, y, spawnPos, colorOffset);
             gameMap[i] = newTile;
         }
@@ -303,7 +307,7 @@ public class LevelGenerator : MonoBehaviour
         return terrainMap[p.y * mapDimensions.width + p.x];
     }
 
-    public float[] ProcessBaseGraphicAsElevationMap()
+    public float[] ProcessBaseGraphicIntoArray()
     {
         Color[] colorValues = baseGraphic.GetPixels();
         float[] outputArray = new float[colorValues.Length];

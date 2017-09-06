@@ -59,6 +59,36 @@ public class Utility : MonoBehaviour {
         return false;
     }
 
+    public static float[] AddSameLengthArrays(float[] firstArray, float[] secondArray, float weightOfSecondArray)
+    {
+        float[] newArray = new float[firstArray.Length];
+        for (int i = 0; i < newArray.Length; i++)
+        {
+            newArray[i] = firstArray[i] + (weightOfSecondArray * secondArray[i]);
+        }
+        return newArray;
+    }
+
+    public static float[] ClampPerlinValues(float[] grid, float min = 0, float max = 1)
+    {
+        for (int i = 0; i < grid.Length; i++)
+        {
+            if (grid[i] > max) grid[i] = max;
+            if (grid[i] < min) grid[i] = min;
+        }
+        return grid;
+    }
+
+    public static float[] StretchValuesToZeroAndOne(float[] grid, float minValue, float maxValue)
+    {
+        for (int i = 0; i < grid.Length; i++)
+        {
+            grid[i] = Mathf.InverseLerp(minValue, maxValue, grid[i]);
+        }
+
+        return grid;
+    }
+
 }
 
 public class Point
@@ -125,6 +155,5 @@ public class Point
         }
         else return false;
     }
-    
 }
 

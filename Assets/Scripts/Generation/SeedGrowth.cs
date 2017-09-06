@@ -42,7 +42,7 @@ public class SeedGrowth : MonoBehaviour {
         List<Point> seeds = new List<Point>();
         if (parameters.amountOfSeeds > 0)
         {
-            seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam);
+            seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam, param.allowedBiomes);
         }
         for(int seed = 0; seed < param.amountOfSeeds; seed++)
         {

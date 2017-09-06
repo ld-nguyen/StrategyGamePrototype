@@ -703,6 +703,9 @@ MonoBehaviour:
     width: 70
     height: 70
   parentGO: {fileID: 210405994}
+  useGraphicAsBase: 1
+  baseGraphic: {fileID: 2800000, guid: 7bb887f01ea917b4da97257cc50e8384, type: 3}
+  perlinWeightOnBaseGrafic: 0
   biomePrefabs:
   - type: 7
     prefab: {fileID: 1637903646547178, guid: 52ba3e91d60f0eb439feac2cf23d5c7c, type: 2}
@@ -728,6 +731,8 @@ MonoBehaviour:
     prefab: {fileID: 1637903646547178, guid: cc61910e65846c646bca2f659dc94e79, type: 2}
   - type: 11
     prefab: {fileID: 1637903646547178, guid: 49b95d7367cffc7428e754f4e4095b42, type: 2}
+  - type: 12
+    prefab: {fileID: 1637903646547178, guid: bb96676f9ad0d2d438df3fe69c3e0592, type: 2}
   tileSize: 5
   maxColorOffsetRange: 0.25
   perlinBiomeSettings:
@@ -808,7 +813,6 @@ MonoBehaviour:
   poissonParam:
     radius: 20
     sampleSize: 20
-    terrainToDistributeOn: 1
   showDebugTextureForPerlin: 0
   debugElevationPlane: {fileID: 1369157794}
   debugMoisturePlane: {fileID: 2095754130}
@@ -1109,7 +1113,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.7963162, y: 0.043125004}
   m_AnchorMax: {x: 0.7963162, y: 0.043125004}
-  m_AnchoredPosition: {x: 23, y: 501.00003}
+  m_AnchoredPosition: {x: 23, y: 501.0001}
   m_SizeDelta: {x: 171, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &715447427

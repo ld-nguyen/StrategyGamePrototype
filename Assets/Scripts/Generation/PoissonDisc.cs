@@ -7,7 +7,6 @@ public struct PoissonDiskParameters
 {
     public int radius;
     public int sampleSize;
-    public TerrainType terrainToDistributeOn;
 }
 public class PoissonDisc {
 
@@ -15,12 +14,14 @@ public class PoissonDisc {
     private static PoissonDiskParameters param;
     private static MapDimensions dimensions;
     private static List<Point> activeSamplePoints;
+    private static List<TerrainType> terrainToDistributeOn;
 
-    public static List<Point> Distribute(TerrainType[] map, PoissonDiskParameters parameters)
+    public static List<Point> Distribute(TerrainType[] map, PoissonDiskParameters parameters, List<TerrainType> allowedTerrain)
     {
         grid = map;
         param = parameters;
         dimensions = LevelGenerator.Instance.mapDimensions;
+        terrainToDistributeOn = allowedTerrain;
 
         List<Point> samplePoints = new List<Point>();
 
@@ -95,7 +96,7 @@ public class PoissonDisc {
 
     private static bool IsProperTerrainOnPoint(Point point)
     {
-        if (grid[point.y * dimensions.width + point.x] == param.terrainToDistributeOn)
+        if (terrainToDistributeOn.Contains(grid[point.y * dimensions.width + point.x]))
         {
             return true;
         }
