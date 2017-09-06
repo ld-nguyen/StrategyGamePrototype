@@ -49,6 +49,7 @@ public class Tile : MonoBehaviour
     void OnMouseEnter()
     {
         SetColor(GameManager.Instance.mouseOverTileColor);
+        
     }
 
     void OnMouseDown()

@@ -69,6 +69,8 @@ public class LevelGenerator : MonoBehaviour
     [Header("General Settings")]
     public MapDimensions mapDimensions;
     public GameObject parentGO;
+    public bool useGraphicAsBase;
+    public Texture2D baseGraphic;
     [Header("Tiles")]
     public Biome[] biomePrefabs;
     public int tileSize;
@@ -114,6 +116,8 @@ public class LevelGenerator : MonoBehaviour
         {
             prefabDictionary.Add(biome.type, biome.prefab);
         }
+        //Safeguard
+        if (!baseGraphic && useGraphicAsBase) { useGraphicAsBase = false; }
     }
 
     public void StartLevelGeneration()
@@ -130,9 +134,18 @@ public class LevelGenerator : MonoBehaviour
     }
     private void GenerateProcedualLevel()
     {
-        elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings);
-        moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings);
-
+        if (useGraphicAsBase)
+        {
+            elevationMap = ProcessBaseGraphicAsElevationMap();
+            moistureMap = ProcessBaseGraphicAsElevationMap();
+            elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings, PerlinMapGenerator.OutputRange.MinusOneToOne);
+            moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings,PerlinMapGenerator.OutputRange.MinusOneToOne);
+        }
+        else
+        {
+            elevationMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings);
+            moistureMap = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings);
+        }
         terrainMap = CombinePerlinMaps();
 
         terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
@@ -290,4 +303,17 @@ public class LevelGenerator : MonoBehaviour
         return terrainMap[p.y * mapDimensions.width + p.x];
     }
 
+    public float[] ProcessBaseGraphicAsElevationMap()
+    {
+        Color[] colorValues = baseGraphic.GetPixels();
+        float[] outputArray = new float[colorValues.Length];
+        mapDimensions.height = baseGraphic.height;
+        mapDimensions.width = baseGraphic.width;
+
+        for (int i = 0; i < colorValues.Length; i++)
+        {
+            outputArray[i] = colorValues[i].grayscale;
+        }
+        return outputArray;
+    }
 }

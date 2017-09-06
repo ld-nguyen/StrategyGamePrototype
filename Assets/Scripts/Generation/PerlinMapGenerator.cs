@@ -24,11 +24,12 @@ public struct PerlinMapParameters
 
 public class PerlinMapGenerator
 {
+    public enum OutputRange { ZeroToOne, MinusOneToOne }
     public const int MAX_OFFSET_VALUE = 100000;
     private static int mapWidth;
     private static int mapHeight;
 
-    public static float[] GeneratePerlinMap(int width, int height,PerlinMapParameters parameters)
+    public static float[] GeneratePerlinMap(int width, int height, PerlinMapParameters parameters, OutputRange output = OutputRange.ZeroToOne)
     {
         mapWidth = width;
         mapHeight = height;
@@ -62,18 +63,35 @@ public class PerlinMapGenerator
             perlinValues[i] = sampleValue;
         }
 
-
-        Debug.Log("MinValue is "+ minValue);
-        Debug.Log("MaxValue is " + maxValue);
         //Stretching Values back between 0 & 1
-        for (int i = 0; i < perlinValues.Length; i++)
-        {
-            perlinValues[i] = Mathf.InverseLerp(minValue, maxValue, perlinValues[i]);
-        }
+        perlinValues = StretchPerlinValues(perlinValues, minValue, maxValue, output);
 
         return perlinValues;
     }
 
+    public static float[] ClampPerlinValues(float[] grid, float min = 0, float max = 1)
+    {
+        for (int i = 0; i < grid.Length; i++)
+        {
+            if (grid[i] > max) grid[i] = max;
+            if (grid[i] < min) grid[i] = min;
+        }
+        return grid;
+    }
+
+    public static float[] StretchPerlinValues(float[] grid, float minValue, float maxValue, OutputRange output = OutputRange.ZeroToOne)
+    {
+        for (int i = 0; i < grid.Length; i++)
+        {
+            grid[i] = Mathf.InverseLerp(minValue, maxValue, grid[i]);
+            if (output == OutputRange.MinusOneToOne)
+            {
+                grid[i] = (grid[i] - 1) * 2;
+            }
+        }
+
+        return grid;
+    }
 
     private static float GetNoiseSample(int x, int y, float frequency, float amplitude)
     {

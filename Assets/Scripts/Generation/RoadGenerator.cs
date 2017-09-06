@@ -17,14 +17,16 @@ public struct RoadGeneratorParameters
 
 public class RoadGenerator {
     public enum ExternalCostFactorMethod{ DownwardsTerrain, EvenTerrain}
-
     private static TerrainType[] grid;
     private static RoadGeneratorParameters parameters;
+
+    private const int MAX_ATTEMPTS = 1000;
 
     public static TerrainType[] GenerateRoads(TerrainType[] originalMap, RoadGeneratorParameters param)
     {
         grid = originalMap;
         parameters = param;
+        int attemptCounter = 0;
         for(int road = 0; road < param.numberOfRoads; road++)
         {
             Point startPoint;
@@ -34,30 +36,33 @@ public class RoadGenerator {
                 //Select Start
                 do
                 {
+                    attemptCounter++;
                     startPoint = Point.GetRandomPoint();
-                } while (!CheckStart(startPoint));
+                } while (!CheckStart(startPoint) && attemptCounter < MAX_ATTEMPTS);
+                if (attemptCounter >= MAX_ATTEMPTS) { Debug.LogWarning("RoadGen: No suitable start found!"); return originalMap; }
+                else attemptCounter = 0;
                 //Select End
                 do
                 {
+                    attemptCounter++;
                     endPoint = Point.GetRandomPoint();
-                } while (!CheckEnd(endPoint));
+                } while (!CheckEnd(endPoint) && attemptCounter < MAX_ATTEMPTS);
+                if (attemptCounter >= MAX_ATTEMPTS) { Debug.LogWarning("RoadGen: No suitable end found!"); return originalMap; }
             } while (Utility.ManhattanDistance(startPoint, endPoint) < param.minimumDistance);
-
-            Debug.Log("Start:" + startPoint.ToString() + " End: " + endPoint.ToString());
-
-            //Find Path with A*
-            AStarPathSearch.ExternalCostFactor CostFactor = GetExternalCostMethod(param.externalCostFactorMethod);
-            List<Point> path = new List<Point>();
-            path = AStarPathSearch.FindPath(startPoint, endPoint, IsTraversableTerrain, CostFactor);
-            //Set desired terraintype of path on grid
-            if (path.Count > 0)
-            {
-                Debug.Log("Path found!");
-                foreach(Point p in path)
+            
+                //Find Path with A*
+                AStarPathSearch.ExternalCostFactor CostFactor = GetExternalCostMethod(param.externalCostFactorMethod);
+                List<Point> path = new List<Point>();
+                path = AStarPathSearch.FindPath(startPoint, endPoint, IsTraversableTerrain, CostFactor);
+                //Set desired terraintype of path on grid
+                if (path.Count > 0)
                 {
-                    grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x] = param.desiredRoadTerrain;
+                    Debug.Log("Path found!");
+                    foreach(Point p in path)
+                    {
+                        grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x] = param.desiredRoadTerrain;
+                    }
                 }
-            }
         }
         return grid;
     }

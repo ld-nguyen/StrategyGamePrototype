@@ -55,7 +55,11 @@ public class GameManager : MonoBehaviour
     public void CheckWinCondition()
     {
         List<Unit> enemySide = UnitManager.Instance.GetUnitListOfSide((turnOfSide + 1) % 2);
-        if()
+        if (enemySide.Count <= 0)
+        {
+            UIManager.Instance.ShowWinPanel();
+            playerCanInteract = false;
+        }
     }
 
     public void SetGameMap(Tile[] map)
