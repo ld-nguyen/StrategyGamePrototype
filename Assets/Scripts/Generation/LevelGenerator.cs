@@ -87,8 +87,6 @@ public class LevelGenerator : MonoBehaviour
     [Header("Road Generation Parameters")]
     public RoadGeneratorParameters roadParam;
     public RoadGeneratorParameters riversParam;
-    [Header("Possion Disk Parametrs")]
-    public PoissonDiskParameters poissonParam;
     [Header("Debug")]
     public bool showDebugTextureForPerlin;
     public Renderer debugElevationPlane;
@@ -152,11 +150,11 @@ public class LevelGenerator : MonoBehaviour
         }
         terrainMap = CombinePerlinMaps();
 
-        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
-        //terrainMap = SeedGrowth.PopulateGrid(terrainMap, citiesParam, mapDimensions);
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, forestParam, mapDimensions);
+        terrainMap = SeedGrowth.PopulateGrid(terrainMap, citiesParam, mapDimensions);
         
-        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
-        //terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
+        terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
         if (showDebugTextureForPerlin) ShowPerlinOnTexture();
         InitializePerlinMap();
@@ -164,16 +162,20 @@ public class LevelGenerator : MonoBehaviour
 
     private void GenerateDebugLevel()
     {
+        elevationMap = new float[mapDimensions.width * mapDimensions.height];
+        moistureMap = new float[mapDimensions.width * mapDimensions.height];
         terrainMap = new TerrainType[mapDimensions.width * mapDimensions.height];
-        for(int i = 0; i < mapDimensions.width * mapDimensions.height; i++)
+        for (int i = 0; i < mapDimensions.width * mapDimensions.height; i++)
         {
             terrainMap[i] = TerrainType.Grass;
+            elevationMap[i] = 0.5f;
+            moistureMap[i] = 0.5f;
         }
 
-        List<Point> forestPoints = PoissonDisc.Distribute(terrainMap, poissonParam, forestParam.allowedBiomes   );
+        List<Point> forestPoints = PoissonDisc.Distribute(terrainMap, forestParam.poissonSeedParameters, forestParam.allowedBiomes   );
         foreach (Point p in forestPoints)
         {
-            terrainMap[p.y * mapDimensions.width + p.x] = TerrainType.Forest;
+            terrainMap[p.gridIndex] = TerrainType.Forest;
         }
 
         InitializePerlinMap();
@@ -304,7 +306,7 @@ public class LevelGenerator : MonoBehaviour
     }
     public TerrainType TerrainAtPoint(Point p)
     {
-        return terrainMap[p.y * mapDimensions.width + p.x];
+        return terrainMap[p.gridIndex];
     }
 
     public float[] ProcessBaseGraphicIntoArray()

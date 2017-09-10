@@ -26,11 +26,6 @@ public class Utility : MonoBehaviour {
         return (deltaX + deltaY);
     }
 
-    public static float GetGridValue(float[] grid, Point p)
-    {
-        return grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x];
-    }
-
     public static bool IsInsideGrid(Point p)
     {
         MapDimensions map = LevelGenerator.Instance.mapDimensions;
@@ -89,12 +84,35 @@ public class Utility : MonoBehaviour {
         return grid;
     }
 
+    public static float GetElevationDifference(Point start, Point end)
+    {
+        if (LevelGenerator.Instance)
+        {
+            float[] elevationMap = LevelGenerator.Instance.elevationMap;
+            return elevationMap[start.gridIndex] - elevationMap[end.gridIndex];
+        }
+        else
+        {
+            Debug.LogWarning("RoadGenerator: LevelGenerator.Instance does not exist!");
+            return 0f;
+        }
+    }
 }
 
 public class Point
 {
     public int x;
     public int y;
+    public int gridIndex {
+        get
+        {
+            return y * LevelGenerator.Instance.mapDimensions.width + x;
+        }
+        private set
+        {
+            gridIndex = value;
+        }
+    }
 
     public Point(int x, int y)
     {
@@ -128,6 +146,17 @@ public class Point
 
         return newPoint;
         
+    }
+
+    public Point GetRandomPointInCircle(int minDistance)
+    {
+        float randomLength = Random.value;
+        float randomAngle = Random.value;
+        float radius = minDistance * (randomLength + 1); //+1 so its the randomLength is between 1 & 2
+        float angle = 2 * Mathf.PI * randomAngle;
+        int newX = (int)(x + radius * Mathf.Cos(angle));
+        int newY = (int)(y + radius * Mathf.Sin(angle));
+        return new Point(newX, newY);
     }
 
     public override string ToString()

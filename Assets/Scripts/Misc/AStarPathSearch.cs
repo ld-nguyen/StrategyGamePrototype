@@ -77,13 +77,13 @@ public class Node : System.IComparable
 
 public class AStarPathSearch
 {
-    //TODO: Factor External cost to nodes
     public delegate int ExternalCostFactor(Point currentNode, Point neighbourNode);
     public delegate bool TraversableCondition(Point p);
+    public delegate bool EarlyExitCondition(Point p);
     private static Point startPoint;
     private static Point goalPoint;
 
-    public static List<Point> FindPath(Point start,Point goal, TraversableCondition isTraversableCondition, ExternalCostFactor externalCostOffset = null)
+    public static List<Point> FindPath(Point start,Point goal, TraversableCondition isTraversableCondition, ExternalCostFactor externalCostOffset = null, EarlyExitCondition earlyExit = null)
     {
         //Caching Parameters for the other methods
         startPoint = start;
@@ -98,7 +98,7 @@ public class AStarPathSearch
         {
             Node currentNode = GetLowestFCostNode(openList);
 
-            if(currentNode.coords.Equals(goal)) //Early Exit when found
+            if(CheckForGoal(currentNode,earlyExit)) //Early Exit when found
             {
                 //Reconstruct path
                 return RetracePath(startNode,currentNode);
@@ -133,7 +133,21 @@ public class AStarPathSearch
                     }
                 }
         }
+        Debug.Log("No Road Found");
         return new List<Point>();
+    }
+
+    private static bool CheckForGoal(Node currentNode, EarlyExitCondition earlyExit)
+    {
+        if (earlyExit != null)
+        {
+            if (earlyExit(currentNode.coords) && Utility.ManhattanDistance(startPoint,currentNode.coords) > 10) Debug.Log("EarlyExit!");
+            return (earlyExit(currentNode.coords) && Utility.ManhattanDistance(startPoint, currentNode.coords) > 10) || currentNode.coords.Equals(goalPoint);
+        }
+        else
+        {
+            return currentNode.coords.Equals(goalPoint);
+        }
     }
 
     private static Node GetNodeFromPoint(Point p)
@@ -198,6 +212,7 @@ public class AStarPathSearch
 
     private static List<Point> RetracePath(Node start, Node end)
     {
+        Debug.Log("Retracing");
         List<Point> path = new List<Point>();
         Node currentNode = end;
         while (currentNode.parent != null)
@@ -205,6 +220,7 @@ public class AStarPathSearch
             path.Add(currentNode.coords);
             currentNode = currentNode.parent;
         }
+        Debug.Log("Returning Path of Length " + path.Count);
         return path; 
     }
 }

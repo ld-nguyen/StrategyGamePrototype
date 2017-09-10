@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//TODO: Move some parts to utility class
 [System.Serializable]
 public struct IntegerRange
 {
@@ -19,71 +18,75 @@ public struct SeedGrowthParameters
 {
     public int amountOfSeeds;
     public float placementChanceBaseChance;
-    public float minimumDistance;
+    public PoissonDiskParameters poissonSeedParameters;
     public IntegerRange kernelSize;
     public IntegerRange amountOfGrowthSteps;
     public TerrainType desiredTerrain;
     public List<TerrainType> allowedBiomes;
+    public SeedGrowth.PlacementCondition conditionType;
 }
 
 public class SeedGrowth : MonoBehaviour {
-
+    public enum PlacementCondition{Forest,City}
     private static TerrainType[] grid;
     private static SeedGrowthParameters parameters;
-    private static MapDimensions map;
+    public delegate bool ExternalPlacementCondition(Point source, Point neighbour);
+
 
     public static TerrainType[] PopulateGrid(TerrainType[] originalMap, SeedGrowthParameters param, MapDimensions mapSettings)
     {
         grid = originalMap;
-        map = mapSettings;
         parameters = param;
+        ExternalPlacementCondition condition;
+        switch (param.conditionType)
+        {
+            case PlacementCondition.Forest:
+                condition = ForestConditon;
+                break;
+            case PlacementCondition.City:
+                condition = CityCondition;
+                break;
+            default:
+                condition = null;
+                break;
+        }
 
         Point seedLocation;
         List<Point> seeds = new List<Point>();
         if (parameters.amountOfSeeds > 0)
         {
-            seeds = PoissonDisc.Distribute(grid, LevelGenerator.Instance.poissonParam, param.allowedBiomes);
+            seeds = PoissonDisc.Distribute(grid, param.poissonSeedParameters, param.allowedBiomes);
         }
         for(int seed = 0; seed < param.amountOfSeeds; seed++)
         {
-            //do
-            //{
-            //    seedLocation = new Point(Random.Range(0, mapSettings.width), Random.Range(0, mapSettings.height));
-            //} while (!IsCorrectTile(seedLocation) && !IsFarEnoughFromOtherSeeds(seedLocation,otherPoints));
-            // otherPoints.Add(seedLocation);
-
             seedLocation = seeds[Random.Range(0,seeds.Count)];
 
             for(int step = 0; step < param.amountOfGrowthSteps.GetRandomValue(); step++)
             {
                 int kernelSize = parameters.kernelSize.GetRandomValue();
+                List<Point> createdArea = new List<Point>();
                 for(int xOffset = -kernelSize ; xOffset <= kernelSize; xOffset++)
                 {
                     for(int yOffset = - kernelSize; yOffset <= kernelSize; yOffset++)
                     {
                         Point neighbour = new Point(seedLocation.x + xOffset, seedLocation.y + yOffset);
+                        //Checking all conditions of the neighbour
                         if (neighbour.IsInsideGrid() && IsCorrectTile(neighbour))
                         {
                             float chanceOffset = CalculatePlacementChance(seedLocation, neighbour, kernelSize); //Lower chance for placing a forest tile the farther you are away
-                            if (Random.Range(0f, 1f) < chanceOffset)
+                            if (condition(seedLocation, neighbour) && Random.Range(0f, 1f) < chanceOffset)
                             {
-                                grid[neighbour.y * mapSettings.width + neighbour.x] = parameters.desiredTerrain;
+                                grid[neighbour.gridIndex] = param.desiredTerrain;
+                                createdArea.Add(neighbour);
                             }
                         }
                     }
                 }
-                //Setting next starting points around the edges of the created area
-                Point nextPoint;
-                int xRandomOffset;
-                int yRandomOffset;
-                do
+                if (createdArea.Count > 0)
                 {
-                    xRandomOffset = Random.Range(-kernelSize, kernelSize + 1);
-                    yRandomOffset = Random.Range(-kernelSize, kernelSize + 1);
-                    nextPoint = new Point(seedLocation.x + xRandomOffset, seedLocation.y + yRandomOffset);
-                } while (!nextPoint.IsInsideGrid() && (Mathf.Abs((float) xRandomOffset) == kernelSize || Mathf.Abs((float)yRandomOffset) == kernelSize));
-
-                seedLocation = nextPoint;
+                //Setting next starting points around the edges of the kernel
+                    seedLocation = createdArea[Random.Range(0, createdArea.Count)];
+                } 
             }
         }
         return grid;
@@ -99,25 +102,27 @@ public class SeedGrowth : MonoBehaviour {
 
     public static bool IsCorrectTile(Point coords)
     {
-        int index = coords.y * map.width + coords.x;
 
-        if (grid[index] != parameters.desiredTerrain && parameters.allowedBiomes.Contains(grid[index]))
+        if (grid[coords.gridIndex] != parameters.desiredTerrain && parameters.allowedBiomes.Contains(grid[coords.gridIndex]))
         {
             return true;
         }
         else return false;
     }
 
-    public static bool IsFarEnoughFromOtherSeeds(Point p, HashSet<Point> otherSeeds) //deprecated
+    public static bool ForestConditon(Point source, Point neighbour)
     {
-        if(otherSeeds.Count <= 0) { return true; }
-        else
-        {
-            foreach(Point seed in otherSeeds)
-            {
-                if (Utility.EuclidianDistance(p, seed) < parameters.minimumDistance) return false;
-            }
-            return true;
-        }
+        float moistureValueSource = LevelGenerator.Instance.moistureMap[source.gridIndex];
+        float moistureValueNeighbour = LevelGenerator.Instance.moistureMap[neighbour.gridIndex];
+        return (moistureValueNeighbour - moistureValueSource) >= 0;
     }
+
+    public static bool CityCondition(Point source, Point neighbour)
+    {
+        //Prefer even terrain
+        float terrainValueSource = LevelGenerator.Instance.elevationMap[source.gridIndex];
+        float terrainValueNeighbour = LevelGenerator.Instance.elevationMap[neighbour.gridIndex];
+        return Mathf.Abs(terrainValueSource - terrainValueNeighbour) <= 0.1;
+    }
+
 }

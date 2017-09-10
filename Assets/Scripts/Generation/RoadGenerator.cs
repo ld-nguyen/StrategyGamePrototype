@@ -13,10 +13,12 @@ public struct RoadGeneratorParameters
     public List<TerrainType> roadTerrains;
     public TerrainType desiredRoadTerrain;
     public RoadGenerator.ExternalCostFactorMethod externalCostFactorMethod;
-}
+    public RoadGenerator.EarlyExitCondition earlyExit;
+ }
 
 public class RoadGenerator {
     public enum ExternalCostFactorMethod{ DownwardsTerrain, EvenTerrain}
+    public enum EarlyExitCondition { GoalTerrain,None }
     private static TerrainType[] grid;
     private static RoadGeneratorParameters parameters;
 
@@ -49,18 +51,19 @@ public class RoadGenerator {
                 } while (!CheckEnd(endPoint) && attemptCounter < MAX_ATTEMPTS);
                 if (attemptCounter >= MAX_ATTEMPTS) { Debug.LogWarning("RoadGen: No suitable end found!"); return originalMap; }
             } while (Utility.ManhattanDistance(startPoint, endPoint) < param.minimumDistance);
-            
+            Debug.Log("Start " + startPoint.ToString() + " End " + endPoint.ToString()+" MHD: "+Utility.ManhattanDistance(startPoint,endPoint));
                 //Find Path with A*
                 AStarPathSearch.ExternalCostFactor CostFactor = GetExternalCostMethod(param.externalCostFactorMethod);
+            AStarPathSearch.EarlyExitCondition EarlyExit = GetEarlyExitCondition(param.earlyExit);
                 List<Point> path = new List<Point>();
-                path = AStarPathSearch.FindPath(startPoint, endPoint, IsTraversableTerrain, CostFactor);
+                path = AStarPathSearch.FindPath(startPoint, endPoint, IsTraversableTerrain, CostFactor, EarlyExit);
                 //Set desired terraintype of path on grid
                 if (path.Count > 0)
                 {
                     Debug.Log("Path found!");
                     foreach(Point p in path)
                     {
-                        grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x] = param.desiredRoadTerrain;
+                        grid[p.gridIndex] = param.desiredRoadTerrain;
                     }
                 }
         }
@@ -69,21 +72,31 @@ public class RoadGenerator {
 
     public static bool CheckStart(Point p)
     {
-        return CheckPoints(p, parameters.startTerrain);
+        return parameters.startTerrain.Contains(GetTerrainAtPoint(p)) && PointIsAtEdge(p);
     }
 
     public static bool CheckEnd(Point p)
     {
-        return CheckPoints(p, parameters.endTerrain);
+        return parameters.endTerrain.Contains(GetTerrainAtPoint(p)) && PointIsAtEdge(p);
     }
 
-    public static bool CheckPoints(Point p,List<TerrainType> allowedTerrains)
+    public static bool PointIsAtEdge(Point p)
     {
-        if (!allowedTerrains.Contains(GetTerrainAtPoint(p))) return false;
-        else
-        {
-            return Utility.CheckNeighbours(p, 1, IsDifferentTerrain);
-        }
+        //This method checks the immediate neighbourhood of a point p and checks if there are at least 3 different points with a different terraintype. If there are at least 3 points then the inital Point is on an edge / corner
+            int counter = 0;
+            for (int xOffset = -1; xOffset <= 1; xOffset++)
+            {
+                for (int yOffset = -1; yOffset <= 1; yOffset++)
+                {
+                    Point offset = p + new Point(xOffset, yOffset);
+                    if (offset.IsInsideGrid() && IsDifferentTerrain(p, offset))
+                    {
+                        counter++;
+                    }
+                }
+            }
+            if (counter >= 3) return true;
+            else return false;
     }
 
     public static bool IsSameTerrain(Point initial,Point p)
@@ -98,7 +111,7 @@ public class RoadGenerator {
 
     public static TerrainType GetTerrainAtPoint(Point p)
     {
-        return grid[p.y * LevelGenerator.Instance.mapDimensions.width + p.x];
+        return grid[p.gridIndex];
     }
 
     private static bool IsTraversableTerrain(Point p)
@@ -115,6 +128,24 @@ public class RoadGenerator {
             }
             else return false;
         }
+    }
+
+    private static AStarPathSearch.EarlyExitCondition GetEarlyExitCondition(EarlyExitCondition condtion)
+    {
+        if (condtion == EarlyExitCondition.GoalTerrain)
+        {
+            return GoalTerrainEarlyExit;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    //Quit A* as soon you land on the goal terrain
+    private static bool GoalTerrainEarlyExit(Point coord)
+    {
+        return parameters.endTerrain.Contains(GetTerrainAtPoint(coord)); 
     }
 
     private static AStarPathSearch.ExternalCostFactor GetExternalCostMethod(ExternalCostFactorMethod method)
@@ -135,29 +166,17 @@ public class RoadGenerator {
     {
         //Assigning penalty values to negative elevation differences. If the end point i.e. 0.6f is higher than the start point 0.2 then the difference will always be negative i.e 0.2 - 0.6 = -0.4
         //Multiplying by -1000 to give this cost offset a meaningful impact in the A* heuristics
-        float difference = GetElevationDifference(start, end) < 0 ? GetElevationDifference(start, end) * -1000 : 0;
+        float difference = Utility.GetElevationDifference(start, end) < 0 ? Utility.GetElevationDifference(start, end) * -1000 : 0;
         return Mathf.RoundToInt(difference);
     }
 
     //Gives Higher cost penalty for A* to differences in Elevation
     private static int EvenSlopeCost(Point start, Point end)
     {
-        float difference = GetElevationDifference(start, end) * 1000;
+        float difference = Utility.GetElevationDifference(start, end) * 1000;
         //Using the formula x² since the penalty at high elvation differences should be high and positive
         return Mathf.RoundToInt(Mathf.Pow(difference,2));
     }
 
-    private static float GetElevationDifference(Point start, Point end)
-    {
-        if (LevelGenerator.Instance)
-        {
-            float[] elevationMap = LevelGenerator.Instance.elevationMap;
-            return Utility.GetGridValue(elevationMap, start) - Utility.GetGridValue(elevationMap, end);
-        }
-        else
-        {
-            Debug.LogWarning("RoadGenerator: LevelGenerator.Instance does not exist!");
-            return 0f;
-        }
-    }
+
 }

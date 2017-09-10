@@ -704,8 +704,8 @@ MonoBehaviour:
     height: 70
   parentGO: {fileID: 210405994}
   useGraphicAsBase: 1
-  baseGraphic: {fileID: 2800000, guid: 7bb887f01ea917b4da97257cc50e8384, type: 3}
-  perlinWeightOnBaseGrafic: 0
+  baseGraphic: {fileID: 2800000, guid: d4fc0ea409c2e8a468c77c4e3b315deb, type: 3}
+  perlinWeightOnBaseGrafic: 0.23
   biomePrefabs:
   - type: 7
     prefab: {fileID: 1637903646547178, guid: 52ba3e91d60f0eb439feac2cf23d5c7c, type: 2}
@@ -744,7 +744,7 @@ MonoBehaviour:
     subBiomes:
     - perlinMoistureThreshold: 1
       biome: 0
-  - perlinElevationThreshold: 0.8
+  - perlinElevationThreshold: 0.75
     subBiomes:
     - perlinMoistureThreshold: 0.15
       biome: 7
@@ -772,8 +772,10 @@ MonoBehaviour:
     persistence: 0.5
   forestParam:
     amountOfSeeds: 10
-    placementChanceBaseChance: 0.2
-    minimumDistance: 20
+    placementChanceBaseChance: 0.5
+    poissonSeedParameters:
+      radius: 10
+      sampleSize: 15
     kernelSize:
       min: 2
       max: 6
@@ -781,11 +783,14 @@ MonoBehaviour:
       min: 4
       max: 9
     desiredTerrain: 4
-    allowedBiomes: 010000000200000005000000
+    allowedBiomes: 0100000005000000
+    conditionType: 0
   citiesParam:
     amountOfSeeds: 2
     placementChanceBaseChance: 0.7
-    minimumDistance: 20
+    poissonSeedParameters:
+      radius: 17
+      sampleSize: 15
     kernelSize:
       min: 1
       max: 5
@@ -794,14 +799,16 @@ MonoBehaviour:
       max: 5
     desiredTerrain: 9
     allowedBiomes: 0100000004000000
+    conditionType: 1
   roadParam:
     numberOfRoads: 1
     minimumDistance: 30
     startTerrain: 09000000
     endTerrain: 09000000
-    roadTerrains: 010000000200000004000000060000000900000007000000
+    roadTerrains: 010000000200000004000000050000000b00000009000000
     desiredRoadTerrain: 8
     externalCostFactorMethod: 1
+    earlyExit: 1
   riversParam:
     numberOfRoads: 2
     minimumDistance: 15
@@ -810,9 +817,7 @@ MonoBehaviour:
     roadTerrains: 000000000100000002000000030000000400000006000000
     desiredRoadTerrain: 11
     externalCostFactorMethod: 0
-  poissonParam:
-    radius: 20
-    sampleSize: 20
+    earlyExit: 0
   showDebugTextureForPerlin: 0
   debugElevationPlane: {fileID: 1369157794}
   debugMoisturePlane: {fileID: 2095754130}
@@ -1113,7 +1118,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.7963162, y: 0.043125004}
   m_AnchorMax: {x: 0.7963162, y: 0.043125004}
-  m_AnchoredPosition: {x: 23, y: 501.0001}
+  m_AnchoredPosition: {x: 23, y: 501.00012}
   m_SizeDelta: {x: 171, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &715447427

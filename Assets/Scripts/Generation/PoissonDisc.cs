@@ -13,21 +13,31 @@ public class PoissonDisc {
     private static TerrainType[] grid;
     private static PoissonDiskParameters param;
     private static MapDimensions dimensions;
-    private static List<Point> activeSamplePoints;
-    private static List<TerrainType> terrainToDistributeOn;
+    private static List<TerrainType> terrainsToDistributeOn;
+
+    private static float cellSize;
+    private static bool[] backgroundGrid;
+    private static int backgroundColumns;
+    private static int backgroundRows;
 
     public static List<Point> Distribute(TerrainType[] map, PoissonDiskParameters parameters, List<TerrainType> allowedTerrain)
     {
         grid = map;
         param = parameters;
         dimensions = LevelGenerator.Instance.mapDimensions;
-        terrainToDistributeOn = allowedTerrain;
+        terrainsToDistributeOn = allowedTerrain;
 
+        //step 0
+        cellSize = param.radius / Mathf.Sqrt(2);
+        backgroundColumns = Mathf.CeilToInt(dimensions.width / cellSize);
+        backgroundRows = Mathf.CeilToInt(dimensions.height / cellSize);
+        backgroundGrid = new bool[backgroundColumns*backgroundRows];
+        
         List<Point> samplePoints = new List<Point>();
+        List<Point> activeSamplePoints = new List<Point>();
 
-        activeSamplePoints = new List<Point>();
+        //Step 1
         Point initialSamplePoint;
-        //InitialSample
         do
         {
             initialSamplePoint = Point.GetRandomPoint();
@@ -36,56 +46,51 @@ public class PoissonDisc {
 
         activeSamplePoints.Add(initialSamplePoint);
         samplePoints.Add(initialSamplePoint);
-
+        SetSampleInBackgroundGridAt(initialSamplePoint);
+        //Step 2
         while (activeSamplePoints.Count > 0)
         {
             Point index = activeSamplePoints[Random.Range(0, activeSamplePoints.Count)];
 
-            bool noSuitablePointFound = true;
 
+            bool noSuitablePointFound = true;
             for(int k = 0; k < param.sampleSize; k++)
             {
-                Point offset;
-                do
-                {
-                    offset = Point.GetRandomOffset(index, 2 * param.radius, param.radius);
-                } while (!IsProperTerrainOnPoint(offset));
-
-                if (!CheckNeighboursForSamples(offset, samplePoints))
+                Point offset = index.GetRandomPointInCircle(param.radius);
+                if (!activeSamplePoints.Contains(offset) && CheckPoint(offset)
+                    && !CheckNeighboursForSamples(offset))
                 {
                     activeSamplePoints.Add(offset);
                     samplePoints.Add(offset);
+                    SetSampleInBackgroundGridAt(offset);
                     noSuitablePointFound = false;
                 }
             }
             if(noSuitablePointFound) activeSamplePoints.Remove(index);
-
         }
-
         return samplePoints;
     }
 
 
-    private static bool CheckNeighboursForSamples(Point point, List<Point> allPoints)
+    private static bool CheckNeighboursForSamples(Point sample)
     {
-        for(int xOffset = -param.radius; xOffset <= param.radius; xOffset++)
+        Point backgroundSample = GetBackgroundGridPoint(sample); //Coodinates of sample in the background grid
+        for (int xOffset = -1; xOffset <= 1; xOffset++)
         {
-            for(int yOffset = -param.radius; yOffset <= param.radius; yOffset++)
+            for (int yOffset = -1; yOffset <= 1; yOffset++)
             {
-                Point offset = point + new Point(xOffset, yOffset);
-                if (offset.IsInsideGrid())
+                Point backgroundOffset = backgroundSample + new Point(xOffset, yOffset);
+                if (IsInsideBackgroundGrid(backgroundOffset))
                 {
-                    if (allPoints.Contains(offset))
+                    if (backgroundGrid[backgroundOffset.y * backgroundColumns + backgroundOffset.x] == true)
                     {
-                        if(Utility.ManhattanDistance(point,offset) < param.radius)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
         }
         return false;
+
     }
 
     private static bool CheckPoint(Point point)
@@ -96,10 +101,38 @@ public class PoissonDisc {
 
     private static bool IsProperTerrainOnPoint(Point point)
     {
-        if (terrainToDistributeOn.Contains(grid[point.y * dimensions.width + point.x]))
+        if (terrainsToDistributeOn.Contains(grid[point.gridIndex]))
         {
             return true;
         }
         else return false;
+    }
+
+    private static int GetBackgroundGridIndex(Point p)
+    {
+        Point backgroundPoint = GetBackgroundGridPoint(p);
+        return backgroundPoint.y * backgroundColumns + backgroundPoint.x;
+    }
+
+    private static Point GetBackgroundGridPoint(Point gamePoint)
+    {
+        int backgroundX = (int)(gamePoint.x / cellSize);
+        int backgroundY = (int)(gamePoint.y / cellSize);
+
+        return new Point(backgroundX, backgroundY);
+    }
+
+    private static bool IsInsideBackgroundGrid(Point b)
+    {
+        if (b.x < backgroundColumns && b.x >= 0 && b.y >= 0 && b.y < backgroundRows)
+        {
+            return true;
+        }
+        else return false;
+    }
+
+    private static void SetSampleInBackgroundGridAt(Point p)
+    {
+        backgroundGrid[GetBackgroundGridIndex(p)] = true;
     }
 }

@@ -69,7 +69,7 @@ public class GameManager : MonoBehaviour
 
     public Tile GetTile(Point p)
     {
-        return gameMap[p.y * levelGen.mapDimensions.width + p.x];
+        return gameMap[p.gridIndex];
     }
 
     public Tile GetTile(int x,int y)
