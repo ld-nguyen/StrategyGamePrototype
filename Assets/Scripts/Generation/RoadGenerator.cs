@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [System.Serializable]
-public struct RoadGeneratorParameters
+public class RoadGeneratorParameters
 {
     public int numberOfRoads;
     public int minimumDistance;

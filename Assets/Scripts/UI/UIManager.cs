@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour {
     public void UpdateTurnLabel()
     {
         if (GameManager.Instance.turnOfSide == 0) { turnLabel.text = "TURN: Player RED"; }
-        else { turnLabel.text = "TURN: Player " + GameManager.Instance.turnOfSide; }
+        else { turnLabel.text = "TURN: Player BLUE"; }
     }
 
     public bool ShouldEnableAttackButton()
@@ -49,5 +49,7 @@ public class UIManager : MonoBehaviour {
     public void ShowWinPanel()
     {
         winPanel.SetActive(true);
+        string sideName = GameManager.Instance.turnOfSide == 0 ? "RED" : "BLUE";
+        winPanelText.text = "PLAYER " + sideName + " WINS!";
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public struct PoissonDiskParameters
+public class PoissonDiskParameters
 {
     public int radius;
     public int sampleSize;

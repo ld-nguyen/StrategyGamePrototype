@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public struct PerlinMapParameters
+public class PerlinMapParameters
 {
     public int octaves;
     [Range(0.1f, 50)]

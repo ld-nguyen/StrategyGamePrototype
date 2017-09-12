@@ -87,10 +87,10 @@ public class LevelGenerator : MonoBehaviour
     [Header("Road Generation Parameters")]
     public RoadGeneratorParameters roadParam;
     public RoadGeneratorParameters riversParam;
-    [Header("Debug")]
-    public bool showDebugTextureForPerlin;
-    public Renderer debugElevationPlane;
-    public Renderer debugMoisturePlane;
+    //[Header("Debug")]
+    //public bool showDebugTextureForPerlin;
+    //public Renderer debugElevationPlane;
+    //public Renderer debugMoisturePlane;s
     public static LevelGenerator Instance { get; private set; }
 
     private Dictionary<TerrainType, GameObject> prefabDictionary;
@@ -144,8 +144,6 @@ public class LevelGenerator : MonoBehaviour
             elevationMap = Utility.ClampPerlinValues(elevationMap);
             moistureMap = Utility.AddSameLengthArrays(moistureMap, perlinMoisture, perlinWeightOnBaseGrafic);
             moistureMap = Utility.ClampPerlinValues(moistureMap);
-            float[] perlinDebugStuff = Utility.StretchValuesToZeroAndOne(perlinElevation, -1, 1);
-            if (showDebugTextureForPerlin) ShowPerlinOnTexture(elevationMap, perlinDebugStuff);
         }
         else
         {
@@ -237,39 +235,29 @@ public class LevelGenerator : MonoBehaviour
         }
         GameManager.Instance.SetupGame();
     }
-    private void ShowPerlinOnTexture(float[] arr1, float[] arr2) //Debug Method
+    private void ShowPerlinOnTexture(float[] arr1, Renderer plane)//Debug Method
     {
         int width = mapDimensions.width;
         int height = mapDimensions.height;
 
-        Texture2D elevation = new Texture2D(mapDimensions.width, mapDimensions.height);
-        Texture2D moisture = new Texture2D(mapDimensions.width, mapDimensions.height);
-        Color[] colorMapElevation = new Color[mapDimensions.width * mapDimensions.height];
-        Color[] colorMapMoisture = new Color[mapDimensions.width * mapDimensions.height];
+        Texture2D texture = new Texture2D(mapDimensions.width, mapDimensions.height);
+        Color[] colorMap = new Color[mapDimensions.width * mapDimensions.height];
 
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 int coordiante = y * width + x;
-                colorMapElevation[coordiante] = Color.Lerp(Color.black, Color.white, arr1[coordiante]);
-                colorMapMoisture[coordiante] = Color.Lerp(Color.black, Color.white, arr2[coordiante]);
+                colorMap[coordiante] = Color.Lerp(Color.black, Color.white, arr1[coordiante]);
             }
         }
-        moisture.SetPixels(colorMapMoisture);
-        elevation.SetPixels(colorMapElevation);
-        moisture.Apply();
-        elevation.Apply();
+        texture.SetPixels(colorMap);
+        texture.Apply();
 
-        if (debugMoisturePlane)
+        if (plane)
         {
-            debugMoisturePlane.gameObject.SetActive(true);
-            debugMoisturePlane.material.mainTexture = moisture;
-        }
-        if (debugElevationPlane)
-        {
-            debugElevationPlane.gameObject.SetActive(true);
-            debugElevationPlane.material.mainTexture = elevation;
+            plane.gameObject.SetActive(true);
+            plane.material.mainTexture = texture;
         }
     }
     //Calculates a offset depending on the elevation value (val) and the position in the value range of the terrain type it is in
