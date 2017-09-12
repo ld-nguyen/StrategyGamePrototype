@@ -32,7 +32,6 @@ public class UnitManager: MonoBehaviour {
 
             foreach(Unit unitPrefab in unitCompositionPerSide)
             {
-                //TODO: Selecting different unit types
                 Unit newUnit = Instantiate(unitPrefab,LevelGenerator.Instance.parentGO.transform) as Unit;
                 //Assign unit to side
                 unitListForSide[side].Add(newUnit);
@@ -41,7 +40,7 @@ public class UnitManager: MonoBehaviour {
                 Point spawnpoint;
                 do
                 {
-                    spawnpoint = Point.GetRandomOffset(centerPoint,4);
+                    spawnpoint = centerPoint.GetRandomOffset(4);
                 }while(!spawnpoint.IsInsideGrid() || !newUnit.CanTraversePoint(spawnpoint));
 
                 newUnit.SetUnitPosition(spawnpoint);

@@ -22,8 +22,7 @@ public class Node : System.IComparable
     public Point coords { get; private set; }
     public float g;
     public float h;
-    public float f { get { return g + h + externalCost; } }
-    public float externalCost;
+    public float f { get { return g + h; } }
     public Node parent;
 
     public Node(Point p, float weight = 0)
@@ -31,23 +30,20 @@ public class Node : System.IComparable
         coords = p;
         g = 0;
         h = 0;
-        externalCost = weight;
     }
 
-    public Node(Point p, int gCost, int hCost, float weight = 0)
+    public Node(Point p, int gCost, int hCost)
     {
         coords = p;
         g = gCost;
         h = hCost;
-        externalCost = weight;
     }
 
-    public Node(Point p, Point start, Point goal, float weight = 0)
+    public Node(Point p, Point start, Point goal)
     {
         coords = p;
         g = Utility.ManhattanDistance(start, p);
         h = Utility.ManhattanDistance(p, goal);
-        externalCost = weight;
     }
 
     public int CompareTo(object obj)
@@ -59,19 +55,12 @@ public class Node : System.IComparable
     public override bool Equals(object o)
     {
         Node nodeObj = (Node)o;
-        return coords.Equals(nodeObj.coords);
+        return coords.IsSamePoint(nodeObj.coords);
     }
 
     public bool IsSamePoint(Point p)
     {
-        return coords.Equals(p);
-    }
-
-    public void CalculateCosts(Point start, Point goal, float nodeWeight)
-    {
-        g = Utility.ManhattanDistance(start, coords);
-        h = Utility.ManhattanDistance(coords, goal);
-        externalCost = nodeWeight;
+        return coords.IsSamePoint(p);
     }
 }
 
@@ -142,11 +131,11 @@ public class AStarPathSearch
         if (earlyExit != null)
         {
             if (earlyExit(currentNode.coords) && Utility.ManhattanDistance(startPoint,currentNode.coords) > 10) Debug.Log("EarlyExit!");
-            return (earlyExit(currentNode.coords) && Utility.ManhattanDistance(startPoint, currentNode.coords) > 10) || currentNode.coords.Equals(goalPoint);
+            return (earlyExit(currentNode.coords) && Utility.ManhattanDistance(startPoint, currentNode.coords) > 10) || currentNode.coords.IsSamePoint(goalPoint);
         }
         else
         {
-            return currentNode.coords.Equals(goalPoint);
+            return currentNode.coords.IsSamePoint(goalPoint);
         }
     }
 
@@ -176,7 +165,7 @@ public class AStarPathSearch
                 else
                 {
                     Point neighbour = currentNode.coords.GetNeighbour(xOffset, yOffset);
-                    if (Utility.IsInsideGrid(neighbour)) 
+                    if (neighbour.IsInsideGrid()) 
                     {
                         neighbours.Add(new Node(neighbour, startPoint, goalPoint));
                     }
@@ -201,7 +190,7 @@ public class AStarPathSearch
 
         for(int i = 0; i < offsets.Length; i++)
         {
-            if (Utility.IsInsideGrid(offsets[i]))
+            if (offsets[i].IsInsideGrid())
             {
                 neighbours.Add(new Node(offsets[i], startPoint, goalPoint));
             }

@@ -2,25 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 [System.Serializable]
-public struct IntegerRange
+public class IntegerRange
 {
     public int min;
     public int max;
 
     public int GetRandomValue()
     {
-        return Random.Range(min, max);
+        return Random.Range(min, max+1); //+1 to make max inclusive in Random range
     }
 }
 
 [System.Serializable]
-public struct SeedGrowthParameters
+public class SeedGrowthParameters
 {
     public int amountOfSeeds;
-    public float placementChanceBaseChance;
     public PoissonDiskParameters poissonSeedParameters;
-    public IntegerRange kernelSize;
     public IntegerRange amountOfGrowthSteps;
+    public IntegerRange kernelSize;
+    public float placementBaseChance;
     public TerrainType desiredTerrain;
     public List<TerrainType> allowedBiomes;
     public SeedGrowth.PlacementCondition conditionType;
@@ -71,10 +71,10 @@ public class SeedGrowth : MonoBehaviour {
                     {
                         Point neighbour = new Point(seedLocation.x + xOffset, seedLocation.y + yOffset);
                         //Checking all conditions of the neighbour
-                        if (neighbour.IsInsideGrid() && IsCorrectTile(neighbour))
+                        if (neighbour.IsInsideGrid() && IsCorrectTile(neighbour) && condition(seedLocation, neighbour))
                         {
                             float chanceOffset = CalculatePlacementChance(seedLocation, neighbour, kernelSize); //Lower chance for placing a forest tile the farther you are away
-                            if (condition(seedLocation, neighbour) && Random.Range(0f, 1f) < chanceOffset)
+                            if (Random.Range(0f, 1f) < chanceOffset)
                             {
                                 grid[neighbour.gridIndex] = param.desiredTerrain;
                                 createdArea.Add(neighbour);
@@ -84,7 +84,6 @@ public class SeedGrowth : MonoBehaviour {
                 }
                 if (createdArea.Count > 0)
                 {
-                //Setting next starting points around the edges of the kernel
                     seedLocation = createdArea[Random.Range(0, createdArea.Count)];
                 } 
             }
@@ -97,7 +96,7 @@ public class SeedGrowth : MonoBehaviour {
         float distance = Utility.EuclidianDistance(origin, goal);
         float maxPossibleDistance = Utility.EuclidianDistance(origin, new Point(origin.x + kernelSize, origin.y + kernelSize));
         float lerp = 1 - Mathf.InverseLerp(0, maxPossibleDistance, distance);
-        return Mathf.Clamp(lerp + parameters.placementChanceBaseChance,0,1);
+        return Mathf.Clamp(lerp + parameters.placementBaseChance,0,1);
     }
 
     public static bool IsCorrectTile(Point coords)

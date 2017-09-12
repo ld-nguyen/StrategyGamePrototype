@@ -8,6 +8,7 @@ public class PerlinDebug : MonoBehaviour {
 
     private void Start()
     {
+        //ShowAmplitudes();
         ShowPerlinTextures();
     }
 
@@ -35,6 +36,11 @@ public class PerlinDebug : MonoBehaviour {
                 ShowPerlinOnTexture(values,i+1);
             }
         }
+    }
+
+    public void ShowAmplitudes()
+    {
+        ShowPerlinOnTexture(PerlinMapGenerator.DebugAmplitudes(dim.width, dim.height));
     }
 
     private void ShowPerlinOnTexture(float[] array, int octaveNumber = 1) //Debug Method

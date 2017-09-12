@@ -12,8 +12,10 @@ public class Tile : MonoBehaviour
     private Color originalColor;
     private bool isHighlighted;
     private Unit unitOnTile;
+    public Color[] extraColors;
 
-    public int cost;
+
+    public int defenseValue;
     public bool showDebugCoords;
 
     public void SetCoords(int x, int y)
@@ -43,7 +45,14 @@ public class Tile : MonoBehaviour
     {
         debugCoords = GetComponentInChildren<TextMesh>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        if(spriteRenderer) originalColor = spriteRenderer.material.color;
+        if (spriteRenderer)
+        {
+            if (extraColors.Length > 0)
+            {
+                spriteRenderer.color = extraColors[Random.Range(0,extraColors.Length)];   
+            }
+            originalColor = spriteRenderer.material.color;
+        }
     }
 
     void OnMouseEnter()

@@ -137,11 +137,15 @@ public class LevelGenerator : MonoBehaviour
         if (useGraphicAsBase)
         {
             elevationMap = ProcessBaseGraphicIntoArray();
-            elevationMap = Utility.AddSameLengthArrays(elevationMap, PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings, false), perlinWeightOnBaseGrafic);
-            elevationMap = Utility.ClampPerlinValues(elevationMap);
             moistureMap = ProcessBaseGraphicIntoArray();
-            moistureMap = Utility.AddSameLengthArrays(moistureMap, PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings, false), perlinWeightOnBaseGrafic);
+            float[] perlinElevation = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, elevationSettings, false);
+            float[] perlinMoisture = PerlinMapGenerator.GeneratePerlinMap(mapDimensions.width, mapDimensions.height, moistureSettings, false);
+            elevationMap = Utility.AddSameLengthArrays(elevationMap, perlinElevation, perlinWeightOnBaseGrafic);
+            elevationMap = Utility.ClampPerlinValues(elevationMap);
+            moistureMap = Utility.AddSameLengthArrays(moistureMap, perlinMoisture, perlinWeightOnBaseGrafic);
             moistureMap = Utility.ClampPerlinValues(moistureMap);
+            float[] perlinDebugStuff = Utility.StretchValuesToZeroAndOne(perlinElevation, -1, 1);
+            if (showDebugTextureForPerlin) ShowPerlinOnTexture(elevationMap, perlinDebugStuff);
         }
         else
         {
@@ -156,7 +160,6 @@ public class LevelGenerator : MonoBehaviour
         terrainMap = RoadGenerator.GenerateRoads(terrainMap, riversParam);
         terrainMap = RoadGenerator.GenerateRoads(terrainMap, roadParam);
 
-        if (showDebugTextureForPerlin) ShowPerlinOnTexture();
         InitializePerlinMap();
     }
 
@@ -190,6 +193,7 @@ public class LevelGenerator : MonoBehaviour
         }
         return perlinTerrain;
     }
+
     private TerrainType GetBiome(float elevationValue, float moistureValue)
     {
         for (int i = 0; i < perlinBiomeSettings.Length; i++)
@@ -233,7 +237,7 @@ public class LevelGenerator : MonoBehaviour
         }
         GameManager.Instance.SetupGame();
     }
-    private void ShowPerlinOnTexture() //Debug Method
+    private void ShowPerlinOnTexture(float[] arr1, float[] arr2) //Debug Method
     {
         int width = mapDimensions.width;
         int height = mapDimensions.height;
@@ -248,8 +252,8 @@ public class LevelGenerator : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 int coordiante = y * width + x;
-                colorMapElevation[coordiante] = Color.Lerp(Color.black, Color.white, elevationMap[coordiante]);
-                colorMapMoisture[coordiante] = Color.Lerp(Color.black, Color.white, moistureMap[coordiante]);
+                colorMapElevation[coordiante] = Color.Lerp(Color.black, Color.white, arr1[coordiante]);
+                colorMapMoisture[coordiante] = Color.Lerp(Color.black, Color.white, arr2[coordiante]);
             }
         }
         moisture.SetPixels(colorMapMoisture);

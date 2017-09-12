@@ -26,34 +26,6 @@ public class Utility : MonoBehaviour {
         return (deltaX + deltaY);
     }
 
-    public static bool IsInsideGrid(Point p)
-    {
-        MapDimensions map = LevelGenerator.Instance.mapDimensions;
-        return p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height;
-    }
-
-    public delegate bool Condition(Point origin, Point offset);
-
-    public static bool CheckNeighbours(Point p,int kernelSize,Condition breakCondition)
-    {
-        for(int xOffset = -kernelSize; xOffset <= kernelSize; xOffset++)
-        {
-            for(int yOffset = -kernelSize; yOffset <= kernelSize; yOffset++)
-            {
-                Point offset = p + new Point(xOffset, yOffset);
-                if (!IsInsideGrid(offset)) continue;
-                else
-                {
-                    if (breakCondition(p,offset))
-                    {
-                        return true;
-                    }
-                } 
-            }
-        }
-        return false;
-    }
-
     public static float[] AddSameLengthArrays(float[] firstArray, float[] secondArray, float weightOfSecondArray)
     {
         float[] newArray = new float[firstArray.Length];
@@ -120,7 +92,7 @@ public class Point
         this.y = y;
     }
 
-    public bool Equals(Point p)
+    public bool IsSamePoint(Point p)
     {
         return x == p.x && y == p.y;
     }
@@ -135,14 +107,14 @@ public class Point
         return new Point(Random.Range(0, LevelGenerator.Instance.mapDimensions.width), Random.Range(0, LevelGenerator.Instance.mapDimensions.height));
     }
 
-    public static Point GetRandomOffset(Point p, int maxOffsetValue,int minDistance = 0)
+    public Point GetRandomOffset(int maxOffsetValue,int minDistance = 0)
     {
         Point newPoint;
         do
         {
             Point offset = new Point(Random.Range(-maxOffsetValue, maxOffsetValue), Random.Range(-maxOffsetValue, maxOffsetValue));
-            newPoint = p + offset;
-        } while (!newPoint.IsInsideGrid() || Utility.EuclidianDistance(p,newPoint) < minDistance);
+            newPoint = this + offset;
+        } while (!newPoint.IsInsideGrid() || Utility.EuclidianDistance(this,newPoint) < minDistance);
 
         return newPoint;
         
@@ -150,10 +122,8 @@ public class Point
 
     public Point GetRandomPointInCircle(int minDistance)
     {
-        float randomLength = Random.value;
-        float randomAngle = Random.value;
-        float radius = minDistance * (randomLength + 1); //+1 so its the randomLength is between 1 & 2
-        float angle = 2 * Mathf.PI * randomAngle;
+        float radius = minDistance * (Random.value + 1); //+1 so minDistance gets multiplied by 1 - 2
+        float angle = 2 * Mathf.PI * Random.value;
         int newX = (int)(x + radius * Mathf.Cos(angle));
         int newY = (int)(y + radius * Mathf.Sin(angle));
         return new Point(newX, newY);

@@ -133,7 +133,7 @@ public class Unit : MonoBehaviour
 
                 Point offset = currentPoint + new Point(xOffset, yOffset);
                 if (Utility.ManhattanDistance(currentPoint, offset) <= range &&
-                    Utility.IsInsideGrid(offset) &&
+                    offset.IsInsideGrid() &&
                     CanTraversePoint(offset))
                 {
                     area.Add(GameManager.Instance.GetTile(offset));

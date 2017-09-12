@@ -89,7 +89,7 @@ public class RoadGenerator {
                 for (int yOffset = -1; yOffset <= 1; yOffset++)
                 {
                     Point offset = p + new Point(xOffset, yOffset);
-                    if (offset.IsInsideGrid() && IsDifferentTerrain(p, offset))
+                    if (offset.IsInsideGrid() && IsTraversableTerrain(offset) && IsDifferentTerrain(p, offset))
                     {
                         counter++;
                     }

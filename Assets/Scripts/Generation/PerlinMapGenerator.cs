@@ -6,9 +6,9 @@ using UnityEngine;
 public struct PerlinMapParameters
 {
     public int octaves;
-    [Range(0.1f, 10)]
+    [Range(0.1f, 50)]
     public float baseFrequency;
-    [Range(1, 2)]
+    [Range(1, 4)]
     public float lacunarity;
     [Range(0.1f, 1)]
     public float persistence;
@@ -68,7 +68,7 @@ public class PerlinMapGenerator
         }
 
         //Stretching Values back between 0 & 1 if needed
-        if(stretchValues) perlinValues = Utility.StretchValuesToZeroAndOne(perlinValues, minValue, maxValue);
+        if (stretchValues) perlinValues = Utility.StretchValuesToZeroAndOne(perlinValues, minValue, maxValue);
 
         return perlinValues;
     }
@@ -77,7 +77,45 @@ public class PerlinMapGenerator
     {
         float xSample = (float)x / mapWidth * frequency;
         float ySample = (float)y / mapHeight * frequency;
-        float value = (Mathf.PerlinNoise(xSample, ySample) * 2) - 1 ;
+        float value = (Mathf.PerlinNoise(xSample, ySample) * 2) - 1;
         return amplitude * value;
+    }
+
+    public static float[] DebugAmplitudes(int width, int height, bool stretchToZeroToOne = true)
+    {
+        mapWidth = width;
+        mapHeight = height;
+        stretchValues = stretchToZeroToOne;
+
+        float[] perlinValues = new float[width * height];
+        int offset = Random.Range(-MAX_OFFSET_VALUE, MAX_OFFSET_VALUE);
+        float minValue = float.MaxValue;
+        float maxValue = float.MinValue;
+
+        for (int i = 0; i < perlinValues.Length; i++)
+        {
+            int x = i % width;
+            int y = i / width;
+
+            float sampleValue = 0;
+            float frequency = 5;
+            float amplitude = 1f;
+
+            sampleValue += GetNoiseSample(x + offset, y + offset, frequency, amplitude);
+
+            //Later used to shift Values back to 0-1
+            if (stretchValues)
+            {
+                if (sampleValue < minValue) minValue = -1;
+                else if (sampleValue > maxValue) maxValue = 1;
+            }
+
+            perlinValues[i] = sampleValue;
+        }
+
+        //Stretching Values back between 0 & 1 if needed
+        if (stretchValues) perlinValues = Utility.StretchValuesToZeroAndOne(perlinValues, minValue, maxValue);
+
+        return perlinValues;
     }
 }
